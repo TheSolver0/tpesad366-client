@@ -1,0 +1,43 @@
+*,
+*::after,
+*::before
+{
+    box-sizing: inherit;
+}
+html, body {
+    height: 100%;
+    margin: 0;
+    scroll-behavior: smooth;
+    /* font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif ; */
+   
+}
+.demo-logo-vertical
+{
+    position: relative;
+    /* width: 200px; */
+    height: 50px;
+    /* background-color: aqua; */
+}
+.flexCardstat
+{
+    margin: 15px;
+}
+.ant-card
+{
+    color: white;
+    font-weight: 700; 
+    cursor: pointer;
+}
+.ant-card-head
+{
+    color: white !important;
+}
+table, th, td
+{
+    text-align: center !important;
+    border: 1px solid gray;
+}
+h2
+{
+    color: rgb(0 21 41);
+}
