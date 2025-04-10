@@ -1,19 +1,39 @@
 import React, { useState, useEffect, } from 'react';
-import { Button, Layout, Menu, theme, Card, Col, Row, Flex, Form, Input, InputNumber, Modal, Select, Popconfirm } from 'antd';
+import '@ant-design/v5-patch-for-react-19';
+import { Button, Layout, Menu, theme, Card, Col, Row, Flex, Form, Input, InputNumber, Modal, Select, Popconfirm, message } from 'antd';
 import {
     MinusSquareFilled,
     PlusSquareOutlined,
     EditFilled,
-    QuestionCircleOutlined, 
+    QuestionCircleOutlined,
 
 } from '@ant-design/icons';
 import DataTable from 'datatables.net-dt';
 import { getProduits } from "../services/api";
+import { getCategories } from "../services/api";
+
+import axios from "axios";
+
 
 const { Content } = Layout;
 
 
-const FormAjout = () => {
+function AjouterProduit() {
+
+    const [form] = Form.useForm();
+
+
+    const [categories, setCategories] = useState([]);
+
+    useEffect(() => {
+        getCategories().then(setCategories);
+
+
+        getCategories().catch(error => console.error("Erreur lors du chargement des produits :", error));
+    }, [])
+
+
+
     const layout = {
         labelCol: { span: 8 },
         wrapperCol: { span: 16 },
@@ -28,9 +48,32 @@ const FormAjout = () => {
             range: '${label} must be between ${min} and ${max}',
         },
     };
-    const onFinish = values => {
+    const onFinish =async (values) => {
+        const { nom, desc, categ, qte, pu, seuil } = values;
         console.log(values);
+        
+        try {
+            const response = await axios.post('http://localhost:8000/produits/', {
+                nom,
+                desc,
+                categ, 
+                qte,
+                pu,
+                seuil
+            });
+           
+            message.success("Produit ajouté avec succès !");
+            form.resetFields();
+            console.log('Produit ajouté :', response.data);
+        } catch (error) {
+            message.error("Erreur lors de l’ajout du produit !");
+            console.error('Erreur lors de l’ajout', error);
+        }
     };
+
+
+
+   
 
     return (<Form
         {...layout}
@@ -38,39 +81,44 @@ const FormAjout = () => {
         onFinish={onFinish}
         style={{ maxWidth: 600 }}
         validateMessages={validateMessages}
+        form={form}
     >
-        <Form.Item name={['user', 'name']} label="Nom" rules={[{ required: true }]}>
+        <Form.Item name='nom' label="Nom" rules={[{ required: true }]} >
             <Input />
         </Form.Item>
-        <Form.Item name={['user', 'description']} label="Description" rules={[{ required: true }]}>
-            <Input />
+        <Form.Item name='desc' label="Description" rules={[{ required: true }]} >
+            <Input  />
         </Form.Item>
-        <Form.Item name={['user', 'cat']} label="Categorie" rules={[{ required: true }]}>
+        <Form.Item name='categ' label="Categorie" rules={[{ required: true }]}>
             <Select>
-                <Select.Option value="c1">Categorie1</Select.Option>
-                <Select.Option value="c2">Categorie2</Select.Option>
-                <Select.Option value="c3">Categorie3</Select.Option>
-                <Select.Option value="c4">Categorie4</Select.Option>
-                <Select.Option value="c5">Categorie5</Select.Option>
+                {categories.map((categorie) => (
+                    <Select.Option key={categorie.id} value={categorie.id} >{categorie.libelle}</Select.Option>
+                ))}
+
             </Select>
         </Form.Item>
-        <Form.Item name={['user', 'stock']} label="Stock" rules={[{ type: 'number', min: 0, max: 99, required: true }]}>
-            <Input />
+        <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
+            <InputNumber  style={{ width: "100%" }}/>
         </Form.Item>
-        <Form.Item name={['user', 'stock']} label="Prix unitaire" rules={[{ type: 'number', min: 0, required: true }]}>
-            <Input />
+        <Form.Item name='pu' label="Prix unitaire" rules={[{ type: 'number', min: 0, required: true }]} >
+            <InputNumber  style={{ width: "100%" }}/>
         </Form.Item>
-        <Form.Item name={['user', 'stock']} label="Seuil" rules={[{ type: 'number', min: 0, required: true }]}>
-            <Input />
+        <Form.Item name='seuil' label="Seuil" rules={[{ type: 'number', min: 0, required: true }]} >
+            <InputNumber  style={{ width: "100%" }}/>
         </Form.Item>
 
         <Form.Item label={null}>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" >
                 Ajouter produit
             </Button>
         </Form.Item>
-    </Form>)
+    </Form>
+    );
 }
+
+
+
+
 
 
 export function Produits() {
@@ -85,11 +133,18 @@ export function Produits() {
                     url: 'https://cdn.datatables.net/plug-ins/2.0.3/i18n/fr-FR.json',
                 },
                 retrieve: true,
+                "paging": true,            // Active la pagination
+                "pageLength": 5,          // Nombre d'éléments par page
+                "lengthMenu": [5, 10, 25, 50], // Options de pagination (5, 10, 25, 50)
+                "pagingType": "full_numbers" ,
             });
-        }, 200);
+        }, 100);
 
         getProduits().catch(error => console.error("Erreur lors du chargement des produits :", error));
     }, [])
+
+
+
 
     const {
         token: { colorBgContainer, borderRadiusLG },
@@ -124,6 +179,7 @@ export function Produits() {
                 minHeight: 280,
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
+                overflowY: 'scroll',
             }}
         >
             <Flex align="flex-end" justify="space-between" className='flexCardstat'>
@@ -131,6 +187,8 @@ export function Produits() {
                 <Button color='#1677ff' variant="solid" icon={<PlusSquareOutlined />} size={size} onClick={showModal}>
                     Ajouter un produit
                 </Button>
+                {/* <Button onClick={() => message.success("Test de message")}>Tester message</Button> */}
+
                 <Modal
                     title="Ajout de produit"
                     open={open}
@@ -138,7 +196,8 @@ export function Produits() {
                     confirmLoading={confirmLoading}
                     onCancel={handleCancel}
                 >
-                    <FormAjout />
+                    {/* <FormAjout /> */}
+                    <AjouterProduit />
                 </Modal>
 
             </Flex>
@@ -168,18 +227,18 @@ export function Produits() {
                             <td>{produit.seuil} </td>
                             <td>
                                 <Flex align="flex-end" justify="space-evenly" >
-                                    
+
                                     <Popconfirm
                                         title="Suppression de produit"
                                         description="Etes vous sure de vouloir supprimer ce produit?"
                                         icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
                                     >
-                                        <Button danger title='Supprimer' style={{borderColor:"transparent"}}>
+                                        <Button danger title='Supprimer' style={{ borderColor: "transparent" }}>
                                             <MinusSquareFilled className='text-danger' />
                                         </Button>
                                     </Popconfirm>
 
-                                    <Button primary title='Supprimer' style={{borderColor:"transparent"}}>
+                                    <Button primary title='Supprimer' style={{ borderColor: "transparent" }}>
                                         <EditFilled className='text-primary' />
                                     </Button>
                                 </Flex>

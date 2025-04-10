@@ -9,7 +9,7 @@ html, body {
     margin: 0;
     scroll-behavior: smooth;
     /* font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif ; */
-   
+    overflow: visible !important;
 }
 .demo-logo-vertical
 {

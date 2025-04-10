@@ -6,6 +6,10 @@ export const getProduits = async () => {
   const response = await axios.get(`${API_URL}produits/`);
   return response.data;
 };
+export const getCategories = async () => {
+  const response = await axios.get(`${API_URL}categories/`);
+  return response.data;
+};
 export const getClients = async () => {
   const response = await axios.get(`${API_URL}clients/`);
   return response.data;
