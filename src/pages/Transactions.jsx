@@ -38,15 +38,7 @@ export function Transactions() {
 
     return (
 
-        <Content
-            style={{
-                margin: '24px 16px',
-                padding: 24,
-                minHeight: 280,
-                background: colorBgContainer,
-                borderRadius: borderRadiusLG,
-            }}
-        >
+        <>
             <Flex align="flex-end" justify="space-between" className='flexCardstat'>
                 <h2 style={{ color: "rgb(0 21 41)", }}>Table de Transactions</h2>
                 <Button color='#1677ff' variant="solid" icon={<PlusSquareOutlined />} size={size}>
@@ -106,7 +98,7 @@ export function Transactions() {
                     </tr> */}
                 </tbody>
             </table>
-        </Content>
+        </>
 
 
 

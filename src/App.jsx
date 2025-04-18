@@ -26,6 +26,9 @@ import { CommandesFournisseurs } from './pages/CommandesFournisseurs';
 import { Fournisseurs } from './pages/Fournisseurs';
 import { Transactions } from './pages/Transactions';
 import { Dashboard } from './pages/Dashboard';
+import { EditProduit } from './pages/EditProduit';
+import { EditClient } from './pages/EditClient';
+import { EditFournisseur } from './pages/EditFournisseur';
 
 const router = createBrowserRouter(
   [
@@ -42,8 +45,16 @@ const router = createBrowserRouter(
           element: <Produits />
         },
         {
+          path: '/produit/:id',
+          element: <EditProduit />
+        },
+        {
           path: '/clients',
           element: <Clients />
+        },
+        {
+          path: '/client/:id',
+          element: <EditClient />
         },
         {
           path: '/transactions',
@@ -52,6 +63,10 @@ const router = createBrowserRouter(
         {
           path: '/fournisseurs',
           element: <Fournisseurs />
+        },
+        {
+          path: '/fournisseur/:id',
+          element: <EditFournisseur />
         },
         {
           path: '/commandesfournisseurs',
@@ -64,6 +79,7 @@ const router = createBrowserRouter(
       ],
     }
   ])
+
 
 
 function Root() {
@@ -92,19 +108,23 @@ function Root() {
     setCurrent(e.key);
   };
 
+const { Content } = Layout;
+
+  
+
   return (
     <>
-      <Layout style={{ height: "100vh", }}>
-        
-        <Sider trigger={null} collapsible collapsed={collapsed}>
+      <Layout style={{ height: "100vh" }}>
+
+        <Sider trigger={null} collapsible collapsed={collapsed} style={{height:"100vh"}}>
           <div className="demo-logo-vertical" >
           <Space direction="vertical" size={16}>
-            <Space wrap size={16}>
-              <Avatar size={40} icon={<UserOutlined />} /> <span style={{color: 'white'}}>Admin</span> 
+            <Space wrap size={1}>
+              <Avatar size={40} icon={<UserOutlined />} /> <span style={{color: 'white'}}>Admin</span>
             </Space>
           </Space>
           </div>
-       
+
           <Menu
             theme="dark"
             mode="inline"
@@ -173,15 +193,16 @@ function Root() {
               }
             ]}
           />
-          
+
         </Sider>
-        
-        <Layout>
-          
+
+        <Layout style={{position:"relative"}}>
+
           <Header
             style={{
               padding: 0,
-              background: colorBgContainer,
+              background: '#001529',
+              color:'white'
             }}
           >
             <Button
@@ -192,30 +213,47 @@ function Root() {
                 fontSize: '16px',
                 width: 64,
                 height: 64,
+                color:'white',
               }}
             />
             <span> <b><em>Tpe inf SAD 366: Application de gestion de stock</em></b> </span>
           </Header>
-          <Flex gap="middle" align="space-evenly" vertical className='flexCardstat'>
+          <Flex gap="middle" align="space-around" vertical className='flexCardstat'>
             <Row gutter={18}>
               <Col span={8}>
-                <Card title="Entrées" variant="borderless" className='bg-success'>
+                <Card title="Entrées" variant="borderless" style={{background:"#57cc99"}}>
                   + 110.000 XAF
                 </Card>
               </Col>
               <Col span={8}>
-                <Card title="Sorties" variant="borderless" className='bg-danger'>
+                <Card title="Sorties" variant="borderless" style={{background:"#e5383b"}}>
                   - 70.000 XAF
                 </Card>
               </Col>
               <Col span={8}>
-                <Card title="Gains" variant="borderless" className='bg-primary'>
+                <Card title="Gains" variant="borderless" style={{background:"#e76f51"}}>
                   (+) 40.000 XAF
                 </Card>
               </Col>
             </Row>
           </Flex>
-          {loading ? <Spin size="large" /> : <Outlet />}
+
+          {/* <Flex  gap="middle" align="space-evenly" vertical> */}
+          <Content
+            style={{
+                margin: '24px 16px',
+                padding: 24,
+                minHeight: 280,
+                background: 'white',
+                borderRadius: borderRadiusLG,
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
+                height:"auto" 
+                // overflowY: 'scroll',
+            }}
+        >
+            {loading ? <Spin size="large" /> : <Outlet />}
+        </Content>
+          {/* </Flex> */}
         </Layout>
       </Layout>
       {/* <Outlet /> */}
@@ -229,6 +267,7 @@ const { Header, Sider } = Layout;
 
 
 const App = () => {
+  
 
   return (
     <RouterProvider router={router} />

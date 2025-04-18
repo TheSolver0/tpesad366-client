@@ -1,4 +1,6 @@
-import React, { useState, useEffect, } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { NavLink } from "react-router-dom";
+
 import '@ant-design/v5-patch-for-react-19';
 import { Button, Layout, Menu, theme, Card, Col, Row, Flex, Form, Input, InputNumber, Modal, Select, Popconfirm, message } from 'antd';
 import {
@@ -12,13 +14,21 @@ import DataTable from 'datatables.net-dt';
 import { getProduits } from "../services/api";
 import { getCategories } from "../services/api";
 
+import {
+    useReactTable,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getSortedRowModel,
+    getPaginationRowModel,
+    flexRender,
+} from '@tanstack/react-table';
+
 import axios from "axios";
 
 
-const { Content } = Layout;
 
 
-function AjouterProduit() {
+function AjouterProduit({ onProduitAdded }) {
 
     const [form] = Form.useForm();
 
@@ -48,22 +58,24 @@ function AjouterProduit() {
             range: '${label} must be between ${min} and ${max}',
         },
     };
-    const onFinish =async (values) => {
+    const onFinish = async (values) => {
         const { nom, desc, categ, qte, pu, seuil } = values;
         console.log(values);
-        
+
         try {
             const response = await axios.post('http://localhost:8000/produits/', {
                 nom,
                 desc,
-                categ, 
+                categ,
                 qte,
                 pu,
                 seuil
             });
-           
+
             message.success("Produit ajouté avec succès !");
             form.resetFields();
+            onProduitAdded(response.data);
+
             console.log('Produit ajouté :', response.data);
         } catch (error) {
             message.error("Erreur lors de l’ajout du produit !");
@@ -73,7 +85,7 @@ function AjouterProduit() {
 
 
 
-   
+
 
     return (<Form
         {...layout}
@@ -83,73 +95,101 @@ function AjouterProduit() {
         validateMessages={validateMessages}
         form={form}
     >
-        <Form.Item name='nom' label="Nom" rules={[{ required: true }]} >
-            <Input />
-        </Form.Item>
-        <Form.Item name='desc' label="Description" rules={[{ required: true }]} >
-            <Input  />
-        </Form.Item>
-        <Form.Item name='categ' label="Categorie" rules={[{ required: true }]}>
-            <Select>
-                {categories.map((categorie) => (
-                    <Select.Option key={categorie.id} value={categorie.id} >{categorie.libelle}</Select.Option>
-                ))}
+        <fieldset>
+            <legend> <h5>Ajouter un produit</h5> </legend>
+            <Form.Item name='nom' label="Nom" rules={[{ required: true }]} >
+                <Input />
+            </Form.Item>
+            <Form.Item name='desc' label="Description" rules={[{ required: true }]} >
+                <Input />
+            </Form.Item>
+            <Form.Item name='categ' label="Categorie" rules={[{ required: true }]}>
+                <Select>
+                    {categories.map((categorie) => (
+                        <Select.Option key={categorie.id} value={categorie.id} >{categorie.libelle}</Select.Option>
+                    ))}
 
-            </Select>
-        </Form.Item>
-        <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
-            <InputNumber  style={{ width: "100%" }}/>
-        </Form.Item>
-        <Form.Item name='pu' label="Prix unitaire" rules={[{ type: 'number', min: 0, required: true }]} >
-            <InputNumber  style={{ width: "100%" }}/>
-        </Form.Item>
-        <Form.Item name='seuil' label="Seuil" rules={[{ type: 'number', min: 0, required: true }]} >
-            <InputNumber  style={{ width: "100%" }}/>
-        </Form.Item>
+                </Select>
+            </Form.Item>
+            <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
+                <InputNumber style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item name='pu' label="Prix unitaire" rules={[{ type: 'number', min: 0, required: true }]} >
+                <InputNumber style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item name='seuil' label="Seuil" rules={[{ type: 'number', min: 0, required: true }]} >
+                <InputNumber style={{ width: "100%" }} />
+            </Form.Item>
 
-        <Form.Item label={null}>
-            <Button type="primary" htmlType="submit" >
-                Ajouter produit
-            </Button>
-        </Form.Item>
+            <Form.Item label={null}>
+                <Button type="primary" htmlType="submit" >
+                    Ajouter produit
+                </Button>
+            </Form.Item>
+        </fieldset>
+
     </Form>
     );
 }
 
 
-
-
-
-
 export function Produits() {
     const [produits, setProduits] = useState([]);
-
+    const [globalFilter, setGlobalFilter] = useState('');
+    const [sorting, setSorting] = useState([{ id: 'id', desc: true }]);
     useEffect(() => {
-        getProduits().then(setProduits);
+        // Charger les données une seule fois
+        getProduits()
+            .then(setProduits)
+            .catch((error) => console.error("Erreur lors du chargement des produits :", error));
+    }, []);
 
-        setTimeout(() => {
-            let table = new DataTable('#myTable', {
-                language: {
-                    url: 'https://cdn.datatables.net/plug-ins/2.0.3/i18n/fr-FR.json',
-                },
-                retrieve: true,
-                "paging": true,            // Active la pagination
-                "pageLength": 5,          // Nombre d'éléments par page
-                "lengthMenu": [5, 10, 25, 50], // Options de pagination (5, 10, 25, 50)
-                "pagingType": "full_numbers" ,
-            });
-        }, 100);
+    const columns = [
+        { header: 'ID', accessorKey: 'id' },
+        { header: 'Nom', accessorKey: 'nom' },
+        { header: 'Description', accessorKey: 'desc' },
+        { header: 'Categorie', accessorKey: 'categorie_nom' },
+        { header: 'Stock', accessorKey: 'qte' },
+        { header: 'Prix Unitaire', accessorKey: 'pu' },
+        { header: 'Seuil', accessorKey: 'seuil' },
+        {
+            header: 'Actions',
+            id: 'actions',
+            cell: ({ row }) => (
+                <Flex justify="space-evenly">
+                    <Popconfirm
+                        title="Suppression du client"
+                        description="Êtes-vous sûr de vouloir supprimer ce client ?"
+                        onConfirm={() => handleDelete(row.original.id)}
+                        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+                    >
+                        <Button danger><MinusSquareFilled /></Button>
+                    </Popconfirm>
 
-        getProduits().catch(error => console.error("Erreur lors du chargement des produits :", error));
-    }, [])
-
-
-
-
-    const {
-        token: { colorBgContainer, borderRadiusLG },
-    } = theme.useToken();
-    const [size, setSize] = useState('large');
+                    <NavLink to={`/produit/${row.original.id}`}>
+                        <Button><EditFilled /></Button>
+                    </NavLink>
+                </Flex>
+            ),
+        },
+    ];
+    const table = useReactTable({
+        data: produits,
+        columns,
+        state: { globalFilter, sorting },
+        onGlobalFilterChange: setGlobalFilter,
+        onSortingChange: setSorting,
+        getCoreRowModel: getCoreRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        initialState: {
+            pagination: {
+                pageIndex: 0,  // première page
+                pageSize: 5,   // tu ne verras que 3 entrées
+            }
+        },
+    });
 
     const [open, setOpen] = useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
@@ -158,117 +198,98 @@ export function Produits() {
         setOpen(true);
     };
     const handleOk = () => {
-        setModalText('The modal will be closed after two seconds');
-        setConfirmLoading(true);
-        setTimeout(() => {
-            setOpen(false);
-            setConfirmLoading(false);
-        }, 2000);
+
+        setOpen(false);
+        setConfirmLoading(false);
+
     };
     const handleCancel = () => {
         console.log('Clicked cancel button');
         setOpen(false);
     };
 
+    const handleDelete = async (id) => {
+        console.log('id', id);
+        // console.log('id',id);
+        try {
+            const response = await axios.delete(`http://localhost:8000/produits/${id}/`);
+            message.success('Produit supprimé');
+            setProduits(prev => prev.filter(c => c.id !== id));
+
+
+        } catch (error) {
+            message.error("Erreur lors de la suppression du produit !");
+            console.error('Erreur lors de la suppression', error);
+        }
+    };
+    const cancel = e => {
+        console.log(e);
+        message.error('Click on No');
+    };
+
     return (
 
-        <Content
-            style={{
-                margin: '24px 16px',
-                padding: 24,
-                minHeight: 280,
-                background: colorBgContainer,
-                borderRadius: borderRadiusLG,
-                overflowY: 'scroll',
-            }}
-        >
-            <Flex align="flex-end" justify="space-between" className='flexCardstat'>
-                <h2 >Table de Produits</h2>
-                <Button color='#1677ff' variant="solid" icon={<PlusSquareOutlined />} size={size} onClick={showModal}>
-                    Ajouter un produit
-                </Button>
-                {/* <Button onClick={() => message.success("Test de message")}>Tester message</Button> */}
+        <>
+            <h2 >Produits</h2>
+           
+            <Input
+                placeholder="Rechercher..."
+                value={globalFilter || ''}
+                onChange={e => setGlobalFilter(e.target.value)}
+                style={{ marginBottom: '1rem', width: '300px' }}
+            />
+            <Row justify="space-between">
+                <Col span={14}>
+                    <table id="myTable" className="table  table-hover table-striped-columns  align-middle">
+                        <caption>Liste des Produits</caption>
+                        <thead className="table-dark">
+                            {table.getHeaderGroups().map(headerGroup => (
+                                <tr key={headerGroup.id}>
+                                    {headerGroup.headers.map(header => (
+                                        <th
+                                            key={header.id}
+                                            style={{ cursor: header.column.getCanSort() ? 'pointer' : 'default' }}
+                                            onClick={header.column.getToggleSortingHandler()}
+                                        >
+                                            {flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )}
+                                            {{ asc: ' 🔼', desc: ' 🔽' }[header.column.getIsSorted()] ?? null}
+                                        </th>
+                                    ))}
+                                </tr>
+                            ))}
+                        </thead>
+                        <tbody>
 
-                <Modal
-                    title="Ajout de produit"
-                    open={open}
-                    onOk={handleOk}
-                    confirmLoading={confirmLoading}
-                    onCancel={handleCancel}
-                >
-                    {/* <FormAjout /> */}
-                    <AjouterProduit />
-                </Modal>
+                            {table.getRowModel().rows.map(row => (
+                                <tr key={row.id}>
+                                    {row.getVisibleCells().map(cell => (
+                                        <td key={cell.id}>
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
 
-            </Flex>
+                        </tbody>
+                    </table>
+                    <div style={{ marginTop: '1rem', display: 'flex', gap: '10px' }}>
+                        <Button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Précédent</Button>
+                        <Button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Suivant</Button>
+                        <span>
+                            Page {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+                        </span>
+                    </div>
+                </Col>
+                <Col span={8} style={{ marginTop: '-60px' }}>
+                    <AjouterProduit onProduitAdded={(newProduit) => setProduits(prev => [...prev, newProduit])} />
 
-            <table id="myTable">
-                <thead>
-                    <tr>
-                        <th>Id</th>
-                        <th>Nom</th>
-                        <th>Description</th>
-                        <th>Catégorie</th>
-                        <th>Stock</th>
-                        <th>Prix Unitaire(XAF)</th>
-                        <th>Seuil</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {produits.map((produit) => (
-                        <tr key={produit.id}>
-                            <td>#{produit.id}</td>
-                            <td>{produit.nom}</td>
-                            <td>{produit.desc}</td>
-                            <td>{produit.categorie_nom}</td>
-                            <td>{produit.qte}</td>
-                            <td>{produit.pu} </td>
-                            <td>{produit.seuil} </td>
-                            <td>
-                                <Flex align="flex-end" justify="space-evenly" >
+                </Col>
+            </Row>
 
-                                    <Popconfirm
-                                        title="Suppression de produit"
-                                        description="Etes vous sure de vouloir supprimer ce produit?"
-                                        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-                                    >
-                                        <Button danger title='Supprimer' style={{ borderColor: "transparent" }}>
-                                            <MinusSquareFilled className='text-danger' />
-                                        </Button>
-                                    </Popconfirm>
-
-                                    <Button primary title='Supprimer' style={{ borderColor: "transparent" }}>
-                                        <EditFilled className='text-primary' />
-                                    </Button>
-                                </Flex>
-                            </td>
-                        </tr>
-                    ))}
-                    {/* <tr>
-                        <td>#2</td>
-                        <td>Produit 2</td>
-                        <td>Description Produit 2</td>
-                        <td>Catégorie 2</td>
-                        <td>80</td>
-                        <td>8200 </td>
-                        <td>7 </td>
-                        <td>
-                            <Flex align="flex-end" justify="space-evenly" >
-                                <a title='Supprimer' >
-                                    <MinusSquareFilled className='text-danger' />
-                                </a>
-
-                                <a title='Editer' >
-                                    <EditFilled className='text-primary' />
-                                </a>
-                            </Flex>
-                        </td>
-                    </tr> */}
-                </tbody>
-            </table>
-        </Content>
-
+        </>
 
 
     )

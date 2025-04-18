@@ -71,28 +71,17 @@ export function Dashboard() {
 
     return (
 
-        <Content
-            style={{
-                margin: '24px 16px',
-                padding: 24,
-                minHeight: 280,
-                background: colorBgContainer,
-                borderRadius: borderRadiusLG,
-                overflowY: 'scroll',
-            }}
-        >
+        <>
             <h1>Dashboard</h1>
 
-            <Row justify="center">
-                
-                <Col span={24} style={{background:'#001529'}}>
-                    <LineChart />
-                </Col>
-            </Row>
             <Row justify="space-between">
-                <Col span={10}>
-                    <table id="myTable">
-                        <thead>
+            <Col span={10} style={{background:'#001529', borderRadius:'30px'}}>
+                    <LineChart/>
+                </Col>
+                <Col span={12}>
+                    <table id="myTable" className="table  table-hover table-striped-columns  align-middle">
+                    <caption>Liste des ventes</caption>
+                        <thead className="table-dark">
                             <tr>
                                 <th>Id</th>
                                 <th>Catégorie</th>
@@ -205,8 +194,8 @@ export function Dashboard() {
                         </tbody>
                     </table>
                 </Col>
-                <Col span={10}>
-                 <table id="myTable2">
+                <Col span={10} style={{display:'none'}}>
+                 <table id="myTable2" >
                                 <thead>
                                     <tr>
                                         <th>Id</th>
@@ -262,7 +251,7 @@ export function Dashboard() {
             </Row>
 
 
-        </Content>
+        </>
 
 
 

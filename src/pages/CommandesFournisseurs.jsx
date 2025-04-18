@@ -38,15 +38,7 @@ export function CommandesFournisseurs() {
 
     return (
 
-        <Content
-            style={{
-                margin: '24px 16px',
-                padding: 24,
-                minHeight: 280,
-                background: colorBgContainer,
-                borderRadius: borderRadiusLG,
-            }}
-        >
+        <>
             <Flex align="flex-end" justify="space-between" className='flexCardstat'>
                 <h2 >Table de Commandes Aux Fournisseurs</h2>
                 <Button color='#1677ff' variant="solid" icon={<PlusSquareOutlined />} size={size}>
@@ -91,7 +83,7 @@ export function CommandesFournisseurs() {
 
                 </tbody>
             </table>
-        </Content>
+        </>
 
 
 

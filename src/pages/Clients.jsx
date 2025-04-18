@@ -1,21 +1,33 @@
-import React, { useState, useEffect, } from 'react';
-import { Button, Layout, Menu, theme, Card, Col, Row, Flex , Form, Input, InputNumber, Modal, Select, Popconfirm, message} from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { NavLink } from "react-router-dom";
+
+import { Button, Layout, Menu, theme, Card, Col, Row, Flex, Form, Input, InputNumber, Modal, Select, Popconfirm, message } from 'antd';
 import {
     MinusSquareFilled,
     PlusSquareOutlined,
     EditFilled,
+    QuestionCircleOutlined,
+    CaretUpOutlined,
+    CaretDownOutlined,
 
 } from '@ant-design/icons';
 import DataTable from 'datatables.net-dt';
 import { getClients } from "../services/api";
-
+import {
+    useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  getPaginationRowModel,
+  flexRender,
+  } from '@tanstack/react-table';
 import axios from "axios";
 
 
 const { Content } = Layout;
 
 
-function AjouterClient() {
+function AjouterClient({ onClientAdded }) {
 
     const [form] = Form.useForm();
 
@@ -33,27 +45,28 @@ function AjouterClient() {
             range: '${label} must be between ${min} and ${max}',
         },
     };
-    const onFinish =async (values) => {
+    const onFinish = async (values) => {
         const { nom, email, adresse, telephone } = values;
         console.log(values);
-        
+
         try {
             const response = await axios.post('http://localhost:8000/clients/', {
                 nom,
                 email,
-                adresse, 
+                adresse,
                 telephone,
             });
-           
+
             message.success("Client Enregistré avec succès !");
             form.resetFields();
+            onClientAdded(response.data);
             console.log('Client enregistré :', response.data);
         } catch (error) {
             message.error("Erreur lors de l’ajout du produit !");
             console.error('Erreur lors de l’ajout', error);
         }
     };
-   
+
 
     return (<Form
         {...layout}
@@ -63,25 +76,28 @@ function AjouterClient() {
         validateMessages={validateMessages}
         form={form}
     >
-        <Form.Item name='nom' label="Nom" rules={[{ required: true }]} >
-            <Input />
-        </Form.Item>
-        <Form.Item name='email' label="E-mail" rules={[{ required: true }]} >
-            <Input  />
-        </Form.Item>
-        <Form.Item name='adresse' label="Adresse" rules={[{ required: true }]}>
-            <Input />
-        </Form.Item>
-        <Form.Item name='telephone' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
-            <InputNumber  style={{ width: "100%" }}/>
-        </Form.Item>
-        
+        <fieldset>
+            <legend> <h5>Ajouter un Client</h5> </legend>
+            <Form.Item name='nom' label="Nom" rules={[{ required: true }]} >
+                <Input />
+            </Form.Item>
+            <Form.Item name='email' label="E-mail" rules={[{ required: true }]} >
+                <Input />
+            </Form.Item>
+            <Form.Item name='adresse' label="Adresse" rules={[{ required: true }]}>
+                <Input />
+            </Form.Item>
+            <Form.Item name='telephone' label="Téléphone" rules={[{ type: 'number', min: 0, required: true }]}>
+                <InputNumber style={{ width: "100%" }} />
+            </Form.Item>
 
-        <Form.Item label={null}>
-            <Button type="primary" htmlType="submit" >
-                Enregistrer Client
-            </Button>
-        </Form.Item>
+
+            <Form.Item label={null}>
+                <Button type="primary" htmlType="submit" >
+                    Enregistrer Client
+                </Button>
+            </Form.Item>
+        </fieldset>
     </Form>
     );
 }
@@ -90,26 +106,65 @@ function AjouterClient() {
 
 export function Clients() {
     const [clients, setClients] = useState([]);
+    const [globalFilter, setGlobalFilter] = useState('');
+    const [sorting, setSorting] = useState([{ id: 'id', desc: true }]);
+    
     useEffect(() => {
-        getClients().then(setClients);
-
-        setTimeout(() => {
-            let table = new DataTable('#myTable', {
-                language: {
-                    url: 'https://cdn.datatables.net/plug-ins/2.0.3/i18n/fr-FR.json',
-                },
-                retrieve: true,
-            });
-        }, 100);
-        getClients().catch(error => console.error("Erreur lors du chargement des produits :", error));
-    }, [])
-
+        // Charger les données une seule fois
+        getClients()
+            .then(setClients)
+            .catch((error) => console.error("Erreur lors du chargement des clients :", error));
+    }, []);
+    const columns = [
+        { header: 'ID', accessorKey: 'id' },
+        { header: 'Nom', accessorKey: 'nom' },
+        { header: 'Email', accessorKey: 'email' },
+        { header: 'Adresse', accessorKey: 'adresse' },
+        { header: 'Téléphone', accessorKey: 'telephone' },
+        {
+          header: 'Actions',
+          id: 'actions',
+          cell: ({ row }) => (
+            <Flex justify="space-evenly">
+              <Popconfirm
+                title="Suppression du client"
+                description="Êtes-vous sûr de vouloir supprimer ce client ?"
+                onConfirm={() => handleDelete(row.original.id)}
+                icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+              >
+                <Button danger><MinusSquareFilled /></Button>
+              </Popconfirm>
+    
+              <NavLink to={`/client/${row.original.id}`}>
+                <Button><EditFilled /></Button>
+              </NavLink>
+            </Flex>
+          ),
+        },
+      ];
+      const table = useReactTable({
+        data: clients,
+        columns,
+        state: { globalFilter, sorting },
+        onGlobalFilterChange: setGlobalFilter,
+        onSortingChange: setSorting,
+        getCoreRowModel: getCoreRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        initialState: {
+            pagination: {
+              pageIndex: 0,  // première page
+              pageSize: 3,   // tu ne verras que 3 entrées
+            }
+          },
+      });    
     const {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken();
     const [size, setSize] = useState('large');
 
-     const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [modalText, setModalText] = useState('Content of the modal');
     const showModal = () => {
@@ -124,75 +179,87 @@ export function Clients() {
         }, 2000);
     };
     const handleCancel = () => {
-        console.log('Clicked cancel button');
-        setOpen(false);
-    };    
+           console.log('Clicked cancel button');
+           setOpen(false);
+       };
+   
+       const handleDelete = async (id) => {
+        try {
+          await axios.delete(`http://localhost:8000/clients/${id}/`);
+          message.success("Client supprimé avec succès.");
+          setClients(prev => prev.filter(c => c.id !== id));
+        } catch (error) {
+          message.error("Erreur lors de la suppression du client.");
+        }
+      };
+       const cancel = e => {
+           console.log(e);
+           message.error('Click on No');
+       };
+
+    
 
     return (
 
-        <Content
-            style={{
-                margin: '24px 16px',
-                padding: 24,
-                minHeight: 280,
-                background: colorBgContainer,
-                borderRadius: borderRadiusLG,
-            }}
-        >
-            <Flex align="flex-end" justify="space-between" className='flexCardstat'>
-                <h2>Table des Clients</h2>
-                <Button color='#1677ff' variant="solid" icon={<PlusSquareOutlined />} size={size} onClick={showModal}>
+        <>
+            <h2>Table des Clients</h2>
+            {/* <Button color='#1677ff' variant="solid" icon={<PlusSquareOutlined />} size={size} onClick={showModal}>
                     Enregistrer un client
-                </Button>
-                {/* <Button onClick={() => message.success("Test de message")}>Tester message</Button> */}
+                </Button> */}
+            {/* <Button onClick={() => message.success("Test de message")}>Tester message</Button> */}
 
-                <Modal
+            {/* <Modal
                     title="Enregistrement de client"
                     open={open}
                     onOk={handleOk}
                     confirmLoading={confirmLoading}
                     onCancel={handleCancel}
-                >
-                    {/* <FormAjout /> */}
-                    <AjouterClient />
-                </Modal>
-            </Flex>
+                > */}
+            {/* <FormAjout /> */}
+            {/* </Modal> */}
+            <Input
+        placeholder="Rechercher..."
+        value={globalFilter || ''}
+        onChange={e => setGlobalFilter(e.target.value)}
+        style={{ marginBottom: '1rem', width: '300px' }}
+      />
 
-            <table id="myTable">
-                <thead>
-                    <tr>
-                        <th>Id</th>
-                        <th>Nom</th>
-                        <th>Email</th>
-                        <th>Adresse</th>
-                        <th>Telephone</th>
-                        {/* <th>Pts</th> */}
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {clients.map((client) => (
-                        <tr key={client.id}>
-                            <td>#{client.id}</td>
-                            <td>{client.nom}</td>
-                            <td>{client.email}</td>
-                            <td>{client.adresse}</td>
-                            <td>{client.telephone}</td>
-                            {/* <td>{client.pt}</td> */}
-                            <td>
-                                <Flex align="flex-end" justify="space-evenly" >
-                                    <a title='Supprimer' >
-                                        <MinusSquareFilled className='text-danger' />
-                                    </a>
+            <Row justify="space-between">
+                <Col span={14}>
+                    <table  className="table  table-hover table-striped-columns  align-middle">
+                        <caption>Liste des Clients</caption>
+                      
 
-                                    <a title='Editer' >
-                                        <EditFilled className='text-primary' />
-                                    </a>
-                                </Flex>
-                            </td>
-                        </tr>
-                    ))}
-                    {/* <tr>
+                        <thead className="table-dark">
+                        {table.getHeaderGroups().map(headerGroup => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map(header => (
+                    <th
+                      key={header.id}
+                      style={{ cursor: header.column.getCanSort() ? 'pointer' : 'default' }}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                      {{ asc: <CaretUpOutlined />, desc: <CaretDownOutlined /> }[header.column.getIsSorted()] ?? null}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+                        </thead>
+                        <tbody>
+                        {table.getRowModel().rows.map(row => (
+                <tr key={row.id}>
+                  {row.getVisibleCells().map(cell => (
+                    <td key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+                            {/* <tr>
                         <td>#2</td>
                         <td>Produit 2</td>
                         <td>Description Produit 2</td>
@@ -212,9 +279,24 @@ export function Clients() {
                             </Flex>
                         </td>
                     </tr> */}
-                </tbody>
-            </table>
-        </Content>
+                        </tbody>
+                    </table>
+                    <div style={{ marginTop: '1rem', display: 'flex', gap: '10px' }}>
+            <Button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Précédent</Button>
+            <Button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Suivant</Button>
+            <span>
+              Page {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+            </span>
+          </div>
+                </Col>
+                <Col span={8}>
+                    <AjouterClient  onClientAdded={(newClient) => setClients(prev => [...prev, newClient])}/>
+
+
+                </Col>
+            </Row>
+
+        </>
 
 
 
