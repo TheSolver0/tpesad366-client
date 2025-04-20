@@ -71,7 +71,7 @@ export function Dashboard() {
 
     return (
 
-        <>
+        <div className='dash'>
             <h1>Dashboard</h1>
 
             <Row justify="space-between">
@@ -194,7 +194,13 @@ export function Dashboard() {
                         </tbody>
                     </table>
                 </Col>
-                <Col span={10} style={{display:'none'}}>
+               
+            </Row>
+            <Row justify="space-between">
+            <Col span={10} style={{background:'#001529', borderRadius:'30px'}}>
+                    <LineChart/>
+                </Col>
+                <Col span={12} >
                  <table id="myTable2" >
                                 <thead>
                                     <tr>
@@ -249,9 +255,9 @@ export function Dashboard() {
                             </table>
                 </Col>
             </Row>
+                                        
 
-
-        </>
+        </div>
 
 
 

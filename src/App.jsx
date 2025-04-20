@@ -29,6 +29,7 @@ import { Dashboard } from './pages/Dashboard';
 import { EditProduit } from './pages/EditProduit';
 import { EditClient } from './pages/EditClient';
 import { EditFournisseur } from './pages/EditFournisseur';
+import { EditCommandeClient } from './pages/EditCommandeClient';
 
 const router = createBrowserRouter(
   [
@@ -75,6 +76,10 @@ const router = createBrowserRouter(
         {
           path: '/commandesclients',
           element: <CommandesClients />
+        },
+        {
+          path: '/commandeclients/:id',
+          element: <EditCommandeClient />
         },
       ],
     }
@@ -251,7 +256,7 @@ const { Content } = Layout;
                 // overflowY: 'scroll',
             }}
         >
-            {loading ? <Spin size="large" /> : <Outlet />}
+            {loading ? <Spin size="large" style={{display:'flex', flexFlow:'row', justifyContent:'center'}} /> : <Outlet />}
         </Content>
           {/* </Flex> */}
         </Layout>

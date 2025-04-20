@@ -34,3 +34,11 @@ export const getMouvements = async () => {
   const response = await axios.get(`${API_URL}mouvements/`);
   return response.data;
 };
+export const getCommandes = async () => {
+  const response = await axios.get(`${API_URL}commandes/`);
+  return response.data;
+};
+export const getCommande = async (id) => {
+  const response = await axios.get(`${API_URL}commandes/${id}`);
+  return response.data;
+};

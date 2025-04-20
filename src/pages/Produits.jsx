@@ -8,6 +8,8 @@ import {
     PlusSquareOutlined,
     EditFilled,
     QuestionCircleOutlined,
+    CaretUpOutlined,
+    CaretDownOutlined,
 
 } from '@ant-design/icons';
 import DataTable from 'datatables.net-dt';
@@ -255,7 +257,7 @@ export function Produits() {
                                                 header.column.columnDef.header,
                                                 header.getContext()
                                             )}
-                                            {{ asc: ' 🔼', desc: ' 🔽' }[header.column.getIsSorted()] ?? null}
+                                            {{ asc: <CaretUpOutlined />, desc: <CaretDownOutlined /> }[header.column.getIsSorted()] ?? null}
                                         </th>
                                     ))}
                                 </tr>
