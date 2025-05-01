@@ -20,74 +20,45 @@ const initialState = {
     }
   }
 
-  function useLivraisonsReducer(commandes) {
-    const [state, dispatch] = useReducer(reducer, initialState);
-  
-    useEffect(() => {
-      const commandesLivrees = commandes.filter(c => c.statut === 'LIVREE');
-  
-      const nouvellesLivraisons = commandesLivrees.filter(
-        cmd => !state.dejaTraitees.includes(cmd.id)
-      );
-  
-      if (nouvellesLivraisons.length > 0) {
-        console.log("Nouvelles livraisons via reducer:", nouvellesLivraisons);
-  
-        nouvellesLivraisons.forEach(cmd => {
-          axios.post("http://localhost:8000/mouvements/", {
-            type: "ENTREE",
-            qte: cmd.qte,
-            montant: cmd.montant,
-            userC: cmd.userC,
-            // description: `Commande livrée : ${cmd.id}`,
-          });
-  
-          const newProduit = {
-            ...cmd.produits_details,
-            qte: cmd.produits_details.qte - cmd.qte,
-          };
-  
-          axios.put(`http://localhost:8000/produits/${cmd.produits}/`, newProduit);
-        });
-  
-        //  Met à jour l’état des commandes déjà traitées
-        dispatch({ type: "NOUVELLES_LIVRAISONS", payload: nouvellesLivraisons });
-      }
-    }, [commandes, state.dejaTraitees]);
-  }
-
 export function useCommandesReducer(commandes) {
-    const [state, dispatch] = useReducer(reducer, initialState);
+  useEffect(() => {
+    const commandesLivrees = commandes.filter(c => c.statut === 'LIVREE');
   
-    useEffect(() => {
-      const commandesLivrees = commandes.filter(c => c.statut === 'LIVREE');
+    // Filtrage avec les données actuelles du localStorage (pas du state)
+    const dejaTraitees = JSON.parse(localStorage.getItem('commandesLivrees')) || [];
   
-      const nouvellesLivraisons = commandesLivrees.filter(
-        cmd => !state.dejaTraitees.includes(cmd.id)
-      );
+    const nouvellesLivraisons = commandesLivrees.filter(
+      cmd => !dejaTraitees.includes(cmd.id)
+    );
   
-      if (nouvellesLivraisons.length > 0) {
-        console.log(" Nouvelles livraisons via reducer:", nouvellesLivraisons);
+    if (nouvellesLivraisons.length > 0) {
+      console.log("Nouvelles livraisons via reducer:", nouvellesLivraisons);
   
-        nouvellesLivraisons.forEach(cmd => {
-          axios.post("http://localhost:8000/mouvements/", {
-            type: "ENTREE",
-            qte: cmd.qte,
-            montant: cmd.montant,
-            userC: cmd.userC,
-            // description: `Commande livrée : ${cmd.id}`,
-          });
-          const newProduit = {
-            ...cmd.produits_details,
-            qte: cmd.produits_details.qte - cmd.qte,
-          };
-  
-          axios.put(`http://localhost:8000/produits/${cmd.produits}/`, newProduit);
+      nouvellesLivraisons.forEach(cmd => {
+        axios.post("http://localhost:8000/mouvements/", {
+          type: "ENTREE",
+          qte: cmd.qte,
+          montant: cmd.montant,
+          user : cmd.client,
+          produits: cmd.produits
         });
   
-        //  Met à jour l’état des commandes déjà traitées
-        dispatch({ type: "NOUVELLES_LIVRAISONS", payload: nouvellesLivraisons });
-      }
-    }, [commandes, state.dejaTraitees]);
+        const newProduit = {
+          ...cmd.produits_details,
+          qte: cmd.produits_details.qte - cmd.qte,
+        };
+  
+        axios.put(`http://localhost:8000/produits/${cmd.produits}/`, newProduit);
+      });
+  
+      // Sauvegarde directe dans le localStorage
+      const nouveauxIds = [...dejaTraitees, ...nouvellesLivraisons.map(c => c.id)];
+      localStorage.setItem('commandesLivrees', JSON.stringify(nouveauxIds));
+  
+      // Met à jour le reducer
+      dispatch({ type: "NOUVELLES_LIVRAISONS", payload: nouvellesLivraisons });
+    }
+  }, [commandes]);
+  
   }
   

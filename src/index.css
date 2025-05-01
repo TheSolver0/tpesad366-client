@@ -56,3 +56,6 @@ h2
 {
     padding: 10px;
 }
+.ligne-critique {
+    background-color: #a71622; /* rouge clair */
+}

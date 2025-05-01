@@ -49,13 +49,16 @@ function AjouterClient({ onClientAdded }) {
     const onFinish = async (values) => {
         const { nom, email, adresse, telephone } = values;
         console.log(values);
+        let role = 'CLIENT'
+         
 
         try {
-            const response = await axios.post('http://localhost:8000/clients/', {
+            const response = await axios.post('http://localhost:8000/users/', {
                 nom,
                 email,
                 adresse,
                 telephone,
+                role
             });
 
             message.success("Client Enregistré avec succès !");

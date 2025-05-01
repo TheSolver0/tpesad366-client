@@ -12,7 +12,7 @@ import {
 
 } from '@ant-design/icons';
 import DataTable from 'datatables.net-dt';
-import { getCommandes, getProduits, getClients } from "../services/api";
+import { getCommandesClient, getProduits, getClients } from "../services/api";
 
 import {
     useReactTable,
@@ -63,12 +63,12 @@ function AjouterCommande({ onCommandeAdded }) {
         const { qte, produits, userC } = values;
         const userF = null;
         console.log(values);
-
+        let client = userC
         try {
-            const response = await axios.post('http://localhost:8000/commandes/', {
+            const response = await axios.post('http://localhost:8000/commandesClient/', {
                 produits,
                 qte,
-                userC,
+                client,
 
             });
 
@@ -143,8 +143,8 @@ export function CommandesClients() {
 
     useEffect(() => {
 
-        getCommandes().then(setCommandes);
-        getCommandes().catch(error => console.error("Erreur lors du chargement des commandes :", error));
+        getCommandesClient().then(setCommandes);
+        getCommandesClient().catch(error => console.error("Erreur lors du chargement des commandes :", error));
 
 
     }, [])
@@ -158,21 +158,21 @@ export function CommandesClients() {
 
     const columns = [
         { header: 'ID', accessorKey: 'id' },
-        { header: 'Produit', accessorKey: 'produits_details.nom' },
+        { header: 'Produit', accessorKey: 'produit_nom' },
         { header: 'Quantité', accessorKey: 'qte' },
-        { header: 'Commandeur', accessorKey: 'userC_details.nom' },
-        { header: 'Prix Unitaire(XAF)', accessorKey: 'produits_details.pu' },
+        { header: 'Commandeur', accessorKey: 'client_nom' },
+        { header: 'Prix Unitaire(XAF)', accessorKey: 'produit_pu' },
         { header: 'Montant(XAF)', accessorKey: 'montant' },
         {
             header: 'Statut',
             id: 'statut',
             cell: ({ row }) => (<span className="badge " style={{
                 fontSize: '12px',
-                background: (row.original.statut == 'EN_ATTENTE') ? 'orange' :
-                    (row.original.statut == 'PREPAREE') ? 'blue' :
-                        (row.original.statut == 'EXPEDIEE') ? '#06d6a0' :
-                            (row.original.statut == 'LIVREE') ? '#007f5f' :
-                                (row.original.statut == 'ANNULEE') ? 'red' : ''
+                background: (row.original.statut === 'EN_ATTENTE') ? 'orange' :
+                    (row.original.statut === 'PREPAREE') ? 'blue' :
+                        (row.original.statut === 'EXPEDIEE') ? '#06d6a0' :
+                            (row.original.statut === 'LIVREE') ? '#007f5f' :
+                                (row.original.statut === 'ANNULEE') ? 'red' : ''
             }} >{row.original.statut}</span>)
         },
         {
@@ -209,7 +209,7 @@ export function CommandesClients() {
         initialState: {
             pagination: {
                 pageIndex: 0,  // première page
-                pageSize: 5,   // tu ne verras que 3 entrées
+                pageSize: 3,   
             }
         },
     });
@@ -217,7 +217,7 @@ export function CommandesClients() {
         console.log('id', id);
         // console.log('id',id);
         try {
-            const response = await axios.delete(`http://localhost:8000/commandes/${id}/`);
+            const response = await axios.delete(`http://localhost:8000/commandesClient/${id}/`);
             message.success('Commande supprimé');
             setTimeout(() => {
                 setCommandes(prev => prev.filter(c => c.id !== id));

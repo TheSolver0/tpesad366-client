@@ -34,11 +34,19 @@ export const getMouvements = async () => {
   const response = await axios.get(`${API_URL}mouvements/`);
   return response.data;
 };
-export const getCommandes = async () => {
-  const response = await axios.get(`${API_URL}commandes/`);
+export const getCommandesClient = async () => {
+  const response = await axios.get(`${API_URL}commandesClient/`);
   return response.data;
 };
-export const getCommande = async (id) => {
-  const response = await axios.get(`${API_URL}commandes/${id}`);
+export const getCommandeClient = async (id) => {
+  const response = await axios.get(`${API_URL}commandesClient/${id}`);
+  return response.data;
+};
+export const getCommandesFournisseur = async () => {
+  const response = await axios.get(`${API_URL}commandesFournisseur/`);
+  return response.data;
+};
+export const getCommandeFournisseur = async (id) => {
+  const response = await axios.get(`${API_URL}commandesFournisseur/${id}`);
   return response.data;
 };

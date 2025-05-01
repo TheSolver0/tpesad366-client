@@ -3,7 +3,7 @@ import { useParams, useLocation } from "react-router-dom";
 import '@ant-design/v5-patch-for-react-19';
 import { Button, Layout, Menu, theme, Card, Col, Row, Flex, Form, Input, InputNumber, Modal, Select, Popconfirm, message } from 'antd';
 
-import { getCommande, getClients, getProduits } from "../services/api";
+import { getCommandeClient, getClients, getProduits } from "../services/api";
 
 import axios from "axios";
 
@@ -50,7 +50,7 @@ function ModifierCommande({ data }) {
             form.setFieldsValue({
                 produits: data.produits,  
                 qte: data.qte,
-                userC: data.userC,
+                client: data.client,
                 statut: data.statut,
                
             });
@@ -73,7 +73,7 @@ function ModifierCommande({ data }) {
 
     const onFinish = async (values) => {
         try {
-            const response = await axios.put(`http://localhost:8000/commandes/${data.id}/`, values);
+            const response = await axios.put(`http://localhost:8000/commandesClient/${data.id}/`, values);
             message.success("Client modifié avec succès !");
             console.log('Client Modifié :', response.data);
         } catch (error) {
@@ -105,7 +105,7 @@ function ModifierCommande({ data }) {
                    <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
                        <InputNumber style={{ width: "100%" }} />
                    </Form.Item>
-                   <Form.Item name='userC' label="User" rules={[{ required: true }]}>
+                   <Form.Item name='client' label="Client" rules={[{ required: true }]}>
                        <Select>
                            {clients.map((client) => (
                                <Select.Option key={client.id} value={client.id} >{client.nom}</Select.Option>
@@ -146,8 +146,8 @@ export function EditCommandeClient() {
     
     console.log({id});
     useEffect(() => {
-        getCommande(id).then(setCommande);
-        getCommande().catch(error => console.error("Erreur lors du chargement des Clients :", error));
+        getCommandeClient(id).then(setCommande);
+        getCommandeClient().catch(error => console.error("Erreur lors du chargement des Clients :", error));
     }, [])
 
     return (

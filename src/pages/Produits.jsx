@@ -145,7 +145,13 @@ export function Produits() {
             .then(setProduits)
             .catch((error) => console.error("Erreur lors du chargement des produits :", error));
     }, []);
-
+    useEffect(() => {
+        produits.forEach(p => {
+          if (p.qte <= p.seuil) {
+            message.warning(`Produit #${p.id} a atteint le seuil`);
+          }
+        });
+      }, [produits]);
     const columns = [
         { header: 'ID', accessorKey: 'id' },
         { header: 'Nom', accessorKey: 'nom' },
@@ -266,7 +272,7 @@ export function Produits() {
                         <tbody>
 
                             {table.getRowModel().rows.map(row => (
-                                <tr key={row.id}>
+                                <tr key={row.id} className={row.original.qte <= row.original.seuil ? 'table-danger' : ''}>
                                     {row.getVisibleCells().map(cell => (
                                         <td key={cell.id}>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
