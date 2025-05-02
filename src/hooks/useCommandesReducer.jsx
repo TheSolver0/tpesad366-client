@@ -21,6 +21,8 @@ const initialState = {
   }
 
 export function useCommandesReducer(commandes) {
+   const [state, dispatch] = useReducer(reducer, initialState); // AJOUT OBLIGATOIRE
+ 
   useEffect(() => {
     const commandesLivrees = commandes.filter(c => c.statut === 'LIVREE');
   
@@ -36,7 +38,7 @@ export function useCommandesReducer(commandes) {
   
       nouvellesLivraisons.forEach(cmd => {
         axios.post("http://localhost:8000/mouvements/", {
-          type: "ENTREE",
+          type: "SORTIE",
           qte: cmd.qte,
           montant: cmd.montant,
           user : cmd.client,
@@ -59,6 +61,7 @@ export function useCommandesReducer(commandes) {
       dispatch({ type: "NOUVELLES_LIVRAISONS", payload: nouvellesLivraisons });
     }
   }, [commandes]);
+  return state; // retourner l’état 
   
   }
   

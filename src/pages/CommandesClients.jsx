@@ -60,25 +60,47 @@ function AjouterCommande({ onCommandeAdded }) {
         },
     };
     const onFinish = async (values) => {
-        const { qte, produits, userC } = values;
+        
+        const { qte, produit, userC } = values;
+        const p = produits.find(p => p.id === produit)
         const userF = null;
         console.log(values);
         let client = userC
+        console.log(p.seuil);
         try {
-            const response = await axios.post('http://localhost:8000/commandesClient/', {
-                produits,
-                qte,
-                client,
+            if(qte<=p.seuil )
+            {
+                const response = await axios.post('http://localhost:8000/commandesClient/', {
+                    produits : produit,
+                    qte,
+                    client,
+    
+                });
+    
+                message.success("Commande ajouté avec succès !");
+                form.resetFields();
+                setTimeout(() => {
+                    onCommandeAdded(response.data);
+                }, 1000);
+    
+                console.log('Commande ajouté :', response.data);
+            }
+            else
+            {
+                const quantiteDisponible = Math.max(qte - p.seuil, 0);
+                if(quantiteDisponible === 0)
+                {
+                  message.error("Produit en rupture de stock");
 
-            });
+                }
+                else
+                {
+                    message.error("Il n'y a plus assez de ce produit en stock. Vous pouvez d'abord prendre  " + quantiteDisponible + " Et prendre le reste au rechargement de stock");
 
-            message.success("Commande ajouté avec succès !");
-            form.resetFields();
-            setTimeout(() => {
-                onCommandeAdded(response.data);
-            }, 1000);
-
-            console.log('Commande ajouté :', response.data);
+                }
+                
+            }
+            
         } catch (error) {
             message.error("Erreur lors de l’ajout de la commande !");
             console.error('Erreur lors de l’ajout', error);
@@ -99,7 +121,7 @@ function AjouterCommande({ onCommandeAdded }) {
     >
         <fieldset>
             <legend> <h5>Ajouter une Commande</h5> </legend>
-            <Form.Item name='produits' label="Produit" rules={[{ required: true }]}>
+            <Form.Item name='produit' label="Produit" rules={[{ required: true }]}>
                 <Select>
                     {produits.map((produit) => (
                         <Select.Option key={produit.id} value={produit.id} >{produit.nom}</Select.Option>
@@ -108,7 +130,7 @@ function AjouterCommande({ onCommandeAdded }) {
                 </Select>
             </Form.Item>
 
-            <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
+            <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 1, required: true }]}>
                 <InputNumber style={{ width: "100%" }} />
             </Form.Item>
             <Form.Item name='userC' label="User" rules={[{ required: true }]}>

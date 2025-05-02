@@ -51,28 +51,32 @@ export function Transactions() {
             }} >{row.original.type}</span>)
         },
         { header: 'Quantité', accessorKey: 'qte' },
-        { header: 'Acteur', accessorKey: 'client' },
-        { header: 'Montant', accessorKey: 'montant' },
-        {
-            header: 'Actions',
-            id: 'actions',
-            cell: ({ row }) => (
-                <Flex justify="space-evenly">
-                    <Popconfirm
-                        title="Suppression de ligne"
-                        description="Êtes-vous sûr de vouloir supprimer cette ligne ?"
-                        onConfirm={() => handleDelete(row.original.id)}
-                        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-                    >
-                        <Button danger><MinusSquareFilled /></Button>
-                    </Popconfirm>
+        { header: 'Acteur', accessorKey: 'user_details.nom' },
+        { header: 'Montant(XAF)', 
+            id: 'montant',
+            cell: ({ row }) => (<span className="badge " style={{
+                fontSize: '13px',
+                background: (row.original.type === 'ENTREE') ? 'red' :
+                    (row.original.type === 'SORTIE') ? '#06d6a0' : ''
+            }} >{row.original.montant}</span>) },
+        // {
+        //     header: 'Actions',
+        //     id: 'actions',
+        //     cell: ({ row }) => (
+        //         <Flex justify="space-evenly">
+        //             <Popconfirm
+        //                 title="Suppression de ligne"
+        //                 description="Êtes-vous sûr de vouloir supprimer cette ligne ?"
+        //                 onConfirm={() => handleDelete(row.original.id)}
+        //                 icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+        //             >
+        //                 <Button danger><MinusSquareFilled /></Button>
+        //             </Popconfirm>
 
-                    <NavLink to={`/client/${row.original.id}`}>
-                        <Button><EditFilled /></Button>
-                    </NavLink>
-                </Flex>
-            ),
-        },
+                   
+        //         </Flex>
+        //     ),
+        // },
     ];
     const table = useReactTable({
         data: mouvements,

@@ -24,7 +24,7 @@ import {
 } from '@tanstack/react-table';
 
 import axios from "axios";
-import {useCommandesReducer} from '../hooks/useCommandesReducer';
+import {useCommandesReducerF} from '../hooks/useCommandesReducerF';
 
 
 const { Content } = Layout;
@@ -60,25 +60,33 @@ function AjouterCommande({ onCommandeAdded }) {
         },
     };
     const onFinish = async (values) => {
-        const { qte, produits, userF } = values;
+        const { qte, produits, fournisseur, fournisseur_produit } = values;
         // const userC = null;
         console.log(values);
-
+        console.log('fournisseur',fournisseur_produit);
+        console.log('produit',produits);
         try {
-            const response = await axios.post('http://localhost:8000/commandes/', {
-                produits,
-                qte,
-                userF,
-
-            });
-
-            message.success("Commande ajouté avec succès !");
-            form.resetFields();
-            setTimeout(() => {
-                onCommandeAdded(response.data);
-            }, 1000);
-
-            console.log('Commande ajouté :', response.data);
+            if(fournisseur_produit.includes(produits))
+            {
+                const response = await axios.post('http://localhost:8000/commandesFournisseur/', {
+                    produits,
+                    qte,
+                    fournisseur,
+    
+                });
+    
+                message.success("Commande ajouté avec succès !");
+                form.resetFields();
+                setTimeout(() => {
+                    onCommandeAdded(response.data);
+                }, 1000);
+    
+                console.log('Commande ajouté :', response.data);
+            }
+            else(
+                message.error("Ce fournisseur n'a pas ce produit dans sa liste")
+            )
+            
         } catch (error) {
             message.error("Erreur lors de l’ajout de la commande !");
             console.error('Erreur lors de l’ajout', error);
@@ -87,7 +95,16 @@ function AjouterCommande({ onCommandeAdded }) {
 
 
 
-
+    const handleFournisseurChange = (id) => {
+        const fournisseur = fournisseurs.find(f => f.id === id);
+        if (fournisseur) {
+            // console.log(fournisseur)
+          // Met à jour dynamiquement le champ caché avec la liste des IDs produits
+          form.setFieldsValue({
+            fournisseur_produit: fournisseur.produits, // ou JSON.stringify si besoin texte
+          });
+        }
+    }
 
     return (<Form
         {...layout}
@@ -111,14 +128,18 @@ function AjouterCommande({ onCommandeAdded }) {
             <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
                 <InputNumber style={{ width: "100%" }} />
             </Form.Item>
-            <Form.Item name='userF' label="User" rules={[{ required: true }]}>
-                <Select>
+            <Form.Item name='fournisseur' label="User" rules={[{ required: true }]}>
+                <Select onChange={handleFournisseurChange}>
                     {fournisseurs.map((fournisseur) => (
                         <Select.Option key={fournisseur.id} value={fournisseur.id} >{fournisseur.nom}</Select.Option>
+                        
                     ))}
 
                 </Select>
             </Form.Item>
+            <Form.Item name="fournisseur_produit"  hidden>
+                        <Input type="hidden" />
+                      </Form.Item>
 
 
 
@@ -148,7 +169,7 @@ export function CommandesFournisseurs() {
 
 
     }, [])
-    useCommandesReducer(commandes);
+    useCommandesReducerF(commandes);
 
 
     const {
@@ -160,7 +181,7 @@ export function CommandesFournisseurs() {
         { header: 'ID', accessorKey: 'id' },
         { header: 'Produit', accessorKey: 'produits_details.nom' },
         { header: 'Quantité', accessorKey: 'qte' },
-        { header: 'Fournisseur', accessorKey: 'userF_details.nom' },
+        { header: 'Fournisseur', accessorKey: 'fournisseur_details.nom' },
         { header: 'Prix Unitaire(XAF)', accessorKey: 'produits_details.pu' },
         { header: 'Montant(XAF)', accessorKey: 'montant' },
         {
