@@ -26,8 +26,8 @@ import {
 } from '@tanstack/react-table';
 
 import axios from "axios";
-
-
+import axiosInstance from '../services/axiosInstance';
+// import api from '../services/axpi';
 
 
 function AjouterProduit({ onProduitAdded }) {
@@ -65,7 +65,7 @@ function AjouterProduit({ onProduitAdded }) {
         console.log(values);
 
         try {
-            const response = await axios.post('http://localhost:8000/produits/', {
+            const response = await axiosInstance.post('http://localhost:8000/produits/',{
                 nom,
                 desc,
                 categ,
@@ -220,7 +220,7 @@ export function Produits() {
         console.log('id', id);
         // console.log('id',id);
         try {
-            const response = await axios.delete(`http://localhost:8000/produits/${id}/`);
+            const response = await axiosInstance.delete(`http://localhost:8000/produits/${id}/`);
             message.success('Produit supprimé');
             setProduits(prev => prev.filter(c => c.id !== id));
 

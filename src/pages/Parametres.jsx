@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink } from "react-router-dom";
+
+import '@ant-design/v5-patch-for-react-19';
 import { Button, Layout, Menu, theme, Card, Col, Row, Flex, Form, Input, InputNumber, Modal, Select, Popconfirm, message } from 'antd';
 import {
     MinusSquareFilled,
     PlusSquareOutlined,
     EditFilled,
+    QuestionCircleOutlined,
     CaretUpOutlined,
     CaretDownOutlined,
-    QuestionCircleOutlined,
-
 
 } from '@ant-design/icons';
 import DataTable from 'datatables.net-dt';
-import { getCommandesClient, getProduits, getClients } from "../services/api";
+import { getProduits, getUsers } from "../services/api";
+import { getCategories } from "../services/api";
 
 import {
     useReactTable,
@@ -24,26 +26,17 @@ import {
 } from '@tanstack/react-table';
 
 import axios from "axios";
-import { useCommandesReducer } from '../hooks/useCommandesReducer';
+import Password from 'antd/es/input/Password';
 import axiosInstance from '../services/axiosInstance';
 
 
-const { Content } = Layout;
 
 
-function AjouterCommande({ onCommandeAdded }) {
+function AjouterUser({ onUserAdded }) {
 
     const [form] = Form.useForm();
 
-    const [produits, setProduits] = useState([]);
-    const [clients, setClients] = useState([]);
 
-    useEffect(() => {
-        getProduits().then(setProduits);
-        getProduits().catch(error => console.error("Erreur lors du chargement des produits :", error));
-        getClients().then(setClients);
-        getClients().catch(error => console.error("Erreur lors du chargement des clients :", error));
-    }, [])
 
 
     const layout = {
@@ -61,45 +54,24 @@ function AjouterCommande({ onCommandeAdded }) {
         },
     };
     const onFinish = async (values) => {
-
-        const { qte, produit, userC } = values;
-        const p = produits.find(p => p.id === produit)
-        const userF = null;
+        const { nom, email, password } = values;
         console.log(values);
-        let client = userC
-        console.log(p.seuil);
+
         try {
-            if (qte <= p.qte - p.seuil) {
-                const response = await axiosInstance.post('http://localhost:8000/commandesClient/', {
-                    produits: produit,
-                    qte,
-                    client,
+            const response = await axiosInstance.post('http://localhost:8000/auth/register/', {
+                email,
+                password,
+                nom,
+                role: "GERANT",
+            });
 
-                });
+            message.success("User ajouté avec succès !");
+            form.resetFields();
+            onProduitAdded(response.data);
 
-                message.success("Commande ajouté avec succès !");
-                form.resetFields();
-                setTimeout(() => {
-                    onCommandeAdded(response.data);
-                }, 1000);
-
-                console.log('Commande ajouté :', response.data);
-            }
-            else {
-                const quantiteDisponible = Math.max(qte - p.seuil, 0);
-                if (quantiteDisponible === 0) {
-                    message.error("Produit en rupture de stock");
-
-                }
-                else {
-                    message.error("Il n'y a plus assez de ce produit en stock. Vous pouvez d'abord prendre  " + quantiteDisponible + " Et prendre le reste au rechargement de stock");
-
-                }
-
-            }
-
+            console.log('Produit ajouté :', response.data);
         } catch (error) {
-            message.error("Erreur lors de l’ajout de la commande !");
+            message.error("Erreur lors de l’ajout de l'user !");
             console.error('Erreur lors de l’ajout', error);
         }
     };
@@ -117,33 +89,24 @@ function AjouterCommande({ onCommandeAdded }) {
         form={form}
     >
         <fieldset>
-            <legend> <h5>Ajouter une Commande</h5> </legend>
-            <Form.Item name='produit' label="Produit" rules={[{ required: true }]}>
-                <Select>
-                    {produits.map((produit) => (
-                        <Select.Option key={produit.id} value={produit.id} >{produit.nom}</Select.Option>
-                    ))}
-
-                </Select>
+            <legend> <h5>Ajouter un User</h5> </legend>
+            <Form.Item name='nom' label="Nom" rules={[{ required: true }]} >
+                <Input />
             </Form.Item>
-
-            <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 1, required: true }]}>
-                <InputNumber style={{ width: "100%" }} />
+            <Form.Item name='email' label="Email" rules={[{ required: true }]} >
+                <Input />
             </Form.Item>
-            <Form.Item name='userC' label="User" rules={[{ required: true }]}>
-                <Select>
-                    {clients.map((client) => (
-                        <Select.Option key={client.id} value={client.id} >{client.nom}</Select.Option>
-                    ))}
-
-                </Select>
+            <Form.Item
+                label="Password"
+                name="password"
+                rules={[{ required: true, message: 'Veuillez entrer votre mot de passe!' }]}
+            >
+                <Input.Password />
             </Form.Item>
-
-
 
             <Form.Item label={null}>
                 <Button type="primary" htmlType="submit" >
-                    Ajouter Commande
+                    Enregistrer User
                 </Button>
             </Form.Item>
         </fieldset>
@@ -153,53 +116,30 @@ function AjouterCommande({ onCommandeAdded }) {
 }
 
 
-
-export function CommandesClients() {
-    const [commandes, setCommandes] = useState([]);
+export function Parametres() {
+    const [users, setUser] = useState([]);
     const [globalFilter, setGlobalFilter] = useState('');
     const [sorting, setSorting] = useState([{ id: 'id', desc: true }]);
-    const previousLivreesRef = useRef([]);
-
     useEffect(() => {
+        // Charger les données une seule fois
+        getUsers()
+            .then(setUser)
+            .catch((error) => console.error("Erreur lors du chargement des users :", error));
+    }, []);
 
-        getCommandesClient().then(setCommandes);
-        getCommandesClient().catch(error => console.error("Erreur lors du chargement des commandes :", error));
-
-
-    }, [])
-    useCommandesReducer(commandes);
-
-    useEffect(() => {
-        commandes.forEach(c => {
-            if (c.statut === 'EN_ATTENTE') {
-                message.warning(`La commande #${c.id} est en attente de validation`);
-            }
-        });
-    }, [commandes]);
-
-    const {
-        token: { colorBgContainer, borderRadiusLG },
-    } = theme.useToken();
-    const [size, setSize] = useState('large');
 
     const columns = [
         { header: 'ID', accessorKey: 'id' },
-        { header: 'Produit', accessorKey: 'produit_nom' },
-        { header: 'Quantité', accessorKey: 'qte' },
-        { header: 'Commandeur', accessorKey: 'client_nom' },
-        { header: 'Prix Unitaire(XAF)', accessorKey: 'produit_pu' },
-        { header: 'Montant(XAF)', accessorKey: 'montant' },
+        { header: 'Nom', accessorKey: 'nom' },
+        { header: 'Email', accessorKey: 'email' },
         {
-            header: 'Statut',
-            id: 'statut',
-            cell: ({ row }) => (<span className="badge " style={{
-                fontSize: '12px',
-                background: (row.original.statut === 'EN_ATTENTE') ? 'orange' :
-                    (row.original.statut === 'PREPAREE') ? 'blue' :
-                        (row.original.statut === 'EXPEDIEE') ? '#06d6a0' :
-                            (row.original.statut === 'LIVREE') ? '#007f5f' :
-                                (row.original.statut === 'ANNULEE') ? 'red' : ''
-            }} >{row.original.statut}</span>)
+            header: 'Role',
+            id: 'is_superuser',
+            cell: ({ row }) => {
+                console.log('row', row.original);
+                const role = row.original.is_superuser == 1 ? 'Admin' : 'Gérant'; // == convertit automatiquement
+                return role;
+            }
         },
         {
             header: 'Actions',
@@ -207,15 +147,15 @@ export function CommandesClients() {
             cell: ({ row }) => (
                 <Flex justify="space-evenly">
                     <Popconfirm
-                        title="Suppression de commande"
-                        description="Êtes-vous sûr de vouloir supprimer cette commande ?"
+                        title="Suppression de l'user"
+                        description="Êtes-vous sûr de vouloir supprimer cet user ?"
                         onConfirm={() => handleDelete(row.original.id)}
                         icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
                     >
                         <Button danger><MinusSquareFilled /></Button>
                     </Popconfirm>
 
-                    <NavLink to={`/commandeclients/${row.original.id}`}>
+                    <NavLink to={`/produit/${row.original.id}`}>
                         <Button><EditFilled /></Button>
                     </NavLink>
                 </Flex>
@@ -223,7 +163,7 @@ export function CommandesClients() {
         },
     ];
     const table = useReactTable({
-        data: commandes,
+        data: users,
         columns,
         state: { globalFilter, sorting },
         onGlobalFilterChange: setGlobalFilter,
@@ -235,41 +175,47 @@ export function CommandesClients() {
         initialState: {
             pagination: {
                 pageIndex: 0,  // première page
-                pageSize: 3,
+                pageSize: 3,   // tu ne verras que 3 entrées
             }
         },
     });
+
+
+
     const handleDelete = async (id) => {
         console.log('id', id);
         // console.log('id',id);
         try {
-            const response = await axiosInstance.delete(`http://localhost:8000/commandesClient/${id}/`);
-            message.success('Commande supprimé');
-            setTimeout(() => {
-                setCommandes(prev => prev.filter(c => c.id !== id));
-            }, 1000)
+            const response = await axiosInstance.delete(`http://localhost:8000/users/${id}/`);
+            message.success('User supprimé');
+            setUser(prev => prev.filter(c => c.id !== id));
 
 
         } catch (error) {
-            message.error("Erreur lors de la suppression de la commande !");
+            message.error("Erreur lors de la suppression du produit !");
             console.error('Erreur lors de la suppression', error);
         }
+    };
+    const cancel = e => {
+        console.log(e);
+        message.error('Click on No');
     };
 
     return (
 
         <>
-            <Flex align="flex-end" justify="space-between" className='flexCardstat'>
-                <h2>Table de Commandes des Clients</h2>
-                {/* <Button color='#1677ff' variant="solid" icon={<PlusSquareOutlined />} size={size}>
-                    Ajouter un produit
-                </Button> */}
-            </Flex>
+            <h2 >Users</h2>
 
-
+            <Input
+                placeholder="Rechercher..."
+                value={globalFilter || ''}
+                onChange={e => setGlobalFilter(e.target.value)}
+                style={{ marginBottom: '1rem', width: '300px' }}
+            />
             <Row justify="space-between">
                 <Col span={14}>
                     <table id="myTable" className="table  table-hover table-striped-columns  align-middle">
+                        <caption>Liste des Utilisateurs</caption>
                         <thead className="table-dark">
                             {table.getHeaderGroups().map(headerGroup => (
                                 <tr key={headerGroup.id}>
@@ -292,7 +238,7 @@ export function CommandesClients() {
                         <tbody>
 
                             {table.getRowModel().rows.map(row => (
-                                <tr key={row.id}>
+                                <tr key={row.id} className={row.original.qte <= row.original.seuil ? 'table-danger' : ''}>
                                     {row.getVisibleCells().map(cell => (
                                         <td key={cell.id}>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -312,13 +258,12 @@ export function CommandesClients() {
                     </div>
                 </Col>
                 <Col span={8} style={{ marginTop: '-60px' }}>
-                    <AjouterCommande onCommandeAdded={(newCommande) => setCommandes(prev => [...prev, newCommande])} />
+                    <AjouterUser onUserAdded={(newUser) => setUser(prev => [...prev, newUser])} />
 
                 </Col>
             </Row>
 
         </>
-
 
 
     )

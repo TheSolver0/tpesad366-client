@@ -24,7 +24,8 @@ import {
 } from '@tanstack/react-table';
 
 import axios from "axios";
-import {useCommandesReducerF} from '../hooks/useCommandesReducerF';
+import { useCommandesReducerF } from '../hooks/useCommandesReducerF';
+import axiosInstance from '../services/axiosInstance';
 
 
 const { Content } = Layout;
@@ -63,30 +64,29 @@ function AjouterCommande({ onCommandeAdded }) {
         const { qte, produits, fournisseur, fournisseur_produit } = values;
         // const userC = null;
         console.log(values);
-        console.log('fournisseur',fournisseur_produit);
-        console.log('produit',produits);
+        console.log('fournisseur', fournisseur_produit);
+        console.log('produit', produits);
         try {
-            if(fournisseur_produit.includes(produits))
-            {
-                const response = await axios.post('http://localhost:8000/commandesFournisseur/', {
+            if (fournisseur_produit.includes(produits)) {
+                const response = await axiosInstance.post('http://localhost:8000/commandesFournisseur/', {
                     produits,
                     qte,
                     fournisseur,
-    
+
                 });
-    
+
                 message.success("Commande ajouté avec succès !");
                 form.resetFields();
                 setTimeout(() => {
                     onCommandeAdded(response.data);
                 }, 1000);
-    
+
                 console.log('Commande ajouté :', response.data);
             }
-            else(
+            else (
                 message.error("Ce fournisseur n'a pas ce produit dans sa liste")
             )
-            
+
         } catch (error) {
             message.error("Erreur lors de l’ajout de la commande !");
             console.error('Erreur lors de l’ajout', error);
@@ -99,10 +99,10 @@ function AjouterCommande({ onCommandeAdded }) {
         const fournisseur = fournisseurs.find(f => f.id === id);
         if (fournisseur) {
             // console.log(fournisseur)
-          // Met à jour dynamiquement le champ caché avec la liste des IDs produits
-          form.setFieldsValue({
-            fournisseur_produit: fournisseur.produits, // ou JSON.stringify si besoin texte
-          });
+            // Met à jour dynamiquement le champ caché avec la liste des IDs produits
+            form.setFieldsValue({
+                fournisseur_produit: fournisseur.produits, // ou JSON.stringify si besoin texte
+            });
         }
     }
 
@@ -132,14 +132,14 @@ function AjouterCommande({ onCommandeAdded }) {
                 <Select onChange={handleFournisseurChange}>
                     {fournisseurs.map((fournisseur) => (
                         <Select.Option key={fournisseur.id} value={fournisseur.id} >{fournisseur.nom}</Select.Option>
-                        
+
                     ))}
 
                 </Select>
             </Form.Item>
-            <Form.Item name="fournisseur_produit"  hidden>
-                        <Input type="hidden" />
-                      </Form.Item>
+            <Form.Item name="fournisseur_produit" hidden>
+                <Input type="hidden" />
+            </Form.Item>
 
 
 
@@ -170,7 +170,13 @@ export function CommandesFournisseurs() {
 
     }, [])
     useCommandesReducerF(commandes);
-
+    useEffect(() => {
+        commandes.forEach(c => {
+            if (c.statut === 'EN_ATTENTE') {
+                message.warning(`La commande #${c.id} est en attente de reception`);
+            }
+        });
+    }, [commandes]);
 
     const {
         token: { colorBgContainer, borderRadiusLG },
@@ -184,6 +190,89 @@ export function CommandesFournisseurs() {
         { header: 'Fournisseur', accessorKey: 'fournisseur_details.nom' },
         { header: 'Prix Unitaire(XAF)', accessorKey: 'produits_details.pu' },
         { header: 'Montant(XAF)', accessorKey: 'montant' },
+        {
+            header: 'Date de commande',
+            accessorKey: 'created_at', // ou produits_details.created_at
+            cell: info => {
+                const raw = info.getValue();
+                if (!raw) return '—';
+
+                // Tronquer les millisecondes à 3 chiffres (JavaScript ne supporte pas plus)
+                const safeIso = raw.replace(/\.(\d{3})\d*Z$/, '.$1Z');
+
+                const date = new Date(safeIso);
+                if (isNaN(date)) return 'Date invalide';
+
+                return date.toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        },
+
+        {
+            header: 'Date estimée de livraison',
+            accessorFn: row => ({
+                createdAt: row.created_at,
+                delai: row.fournisseur_details.delai_livraison,
+                id: row.id,
+            }),
+            cell: info => {
+                const { createdAt, delai, id } = info.getValue() || {};
+
+                if (!createdAt || !delai) return '—';
+
+                // Nettoyer la date
+                const safeDateStr = createdAt.replace(/\.(\d{3})\d*Z$/, '.$1Z');
+                const date = new Date(safeDateStr);
+                if (isNaN(date)) return 'Date invalide';
+
+                // Extraire les jours du délai (ex : "3 00:00:00" → 3)
+                const joursMatch = delai.match(/^(\d+)\s/);
+                const jours = joursMatch ? parseInt(joursMatch[1]) : 0;
+
+                // Ajouter les jours
+                date.setDate(date.getDate() + jours);
+
+                const now = new Date();
+                //    const now = date.getDate() + 1;
+
+                //    console.log('now', now);
+                //    console.log('date', date);
+                const isRetard = now >= date;
+                // const isRetard = now >= date.getDate();
+                //   if (now >= date.getDate()) {
+
+                //     message.warning('Livraison'+id+' en retard !');
+                //   }
+
+                return (<span style={{ display: 'flex', alignItems: 'center' }}>
+                    <span>{date.toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}</span>
+                    {isRetard && (
+                        <span style={{
+                            marginLeft: '8px',
+                            backgroundColor: 'red',
+                            color: 'white',
+                            padding: '2px 6px',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                        }}>
+                            Retard
+                        </span>
+                    )}
+                </span>);
+            }
+        },
+
         {
             header: 'Statut',
             id: 'statut',
@@ -210,7 +299,7 @@ export function CommandesFournisseurs() {
                         <Button danger><MinusSquareFilled /></Button>
                     </Popconfirm>
 
-                    <NavLink to={`/commandeclients/${row.original.id}`}>
+                    <NavLink to={`/commandefournisseurs/${row.original.id}`}>
                         <Button><EditFilled /></Button>
                     </NavLink>
                 </Flex>
@@ -230,7 +319,7 @@ export function CommandesFournisseurs() {
         initialState: {
             pagination: {
                 pageIndex: 0,  // première page
-                pageSize: 3,   
+                pageSize: 3,
             }
         },
     });
@@ -238,7 +327,7 @@ export function CommandesFournisseurs() {
         console.log('id', id);
         // console.log('id',id);
         try {
-            const response = await axios.delete(`http://localhost:8000/commandes/${id}/`);
+            const response = await axiosInstance.delete(`http://localhost:8000/commandes/${id}/`);
             message.success('Commande supprimé');
             setTimeout(() => {
                 setCommandes(prev => prev.filter(c => c.id !== id));
@@ -263,7 +352,7 @@ export function CommandesFournisseurs() {
 
 
             <Row justify="space-between">
-                <Col span={14}>
+                <Col span={16}>
                     <table id="myTable" className="table  table-hover table-striped-columns  align-middle">
                         <thead className="table-dark">
                             {table.getHeaderGroups().map(headerGroup => (
@@ -306,7 +395,7 @@ export function CommandesFournisseurs() {
                         </span>
                     </div>
                 </Col>
-                <Col span={8} style={{ marginTop: '-60px' }}>
+                <Col span={6} style={{ marginTop: '-60px' }}>
                     <AjouterCommande onCommandeAdded={(newCommande) => setCommandes(prev => [...prev, newCommande])} />
 
                 </Col>

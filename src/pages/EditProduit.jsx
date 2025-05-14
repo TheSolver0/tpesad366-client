@@ -7,6 +7,9 @@ import { getProduit } from "../services/api";
 import { getCategories } from "../services/api";
 
 import axios from "axios";
+import axiosInstance from '../services/axiosInstance';
+
+
 
 function ModifierProduit({ data }) {
     const [form] = Form.useForm();
@@ -48,7 +51,7 @@ function ModifierProduit({ data }) {
 
     const onFinish = async (values) => {
         try {
-            const response = await axios.put(`http://localhost:8000/produits/${data.id}/`, values);
+            const response = await axiosInstance.put(`http://localhost:8000/produits/${data.id}/`, values);
             message.success("Produit modifié avec succès !");
             console.log('Produit Modifié :', response.data);
         } catch (error) {

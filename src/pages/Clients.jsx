@@ -23,6 +23,7 @@ import {
   } from '@tanstack/react-table';
   
 import axios from "axios";
+import axiosInstance from '../services/axiosInstance';
 
 
 const { Content } = Layout;
@@ -53,7 +54,7 @@ function AjouterClient({ onClientAdded }) {
          
 
         try {
-            const response = await axios.post('http://localhost:8000/users/', {
+            const response = await axiosInstance.post('http://localhost:8000/users/', {
                 nom,
                 email,
                 adresse,
@@ -189,7 +190,7 @@ export function Clients() {
    
        const handleDelete = async (id) => {
         try {
-          await axios.delete(`http://localhost:8000/clients/${id}/`);
+          await axiosInstance.delete(`http://localhost:8000/clients/${id}/`);
           message.success("Client supprimé avec succès.");
           setClients(prev => prev.filter(c => c.id !== id));
         } catch (error) {

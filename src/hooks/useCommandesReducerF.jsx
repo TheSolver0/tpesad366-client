@@ -1,9 +1,12 @@
 import { useReducer, useEffect } from "react";
 import axios from "axios";
+import axiosInstance from "../services/axiosInstance";
+
+
 
 const initialState = {
     dejaTraitees: JSON.parse(localStorage.getItem('commandesLivreesF')) || [], // Récupère les commandes livrées précédemment
-  };
+  };  
   
   function reducer(state, action) {
     switch (action.type) {
@@ -74,12 +77,12 @@ export function useCommandesReducerF(commandes) {
     const nouvellesLivraisons = commandesLivrees.filter(
       cmd => !dejaTraitees.includes(cmd.id)
     );
-
+   
     if (nouvellesLivraisons.length > 0) {
       console.log("Nouvelles livraisons via reducer:", nouvellesLivraisons);
 
       nouvellesLivraisons.forEach(cmd => {
-        axios.post("http://localhost:8000/mouvements/", {
+        axiosInstance.post("http://localhost:8000/mouvements/", {
           type: "ENTREE",
           qte: cmd.qte,
           montant: cmd.montant,
@@ -92,7 +95,7 @@ export function useCommandesReducerF(commandes) {
           qte: cmd.produits_details.qte + cmd.qte,
         };
 
-        axios.put(`http://localhost:8000/produits/${cmd.produits}/`, newProduit);
+        axiosInstance.put(`http://localhost:8000/produits/${cmd.produits}/`, newProduit);
       });
 
       dispatch({ type: "NOUVELLES_LIVRAISONS", payload: nouvellesLivraisons });

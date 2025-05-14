@@ -6,6 +6,8 @@ import { Button, Layout, Menu, theme, Card, Col, Row, Flex, Form, Input, InputNu
 import { getFournisseur } from "../services/api";
 
 import axios from "axios";
+import axiosInstance from '../services/axiosInstance';
+
 
 function ModifierFournisseur({ data }) {
     const [form] = Form.useForm();
@@ -40,7 +42,7 @@ function ModifierFournisseur({ data }) {
 
     const onFinish = async (values) => {
         try {
-            const response = await axios.put(`http://localhost:8000/fournisseurs/${data.id}/`, values);
+            const response = await axiosInstance.put(`http://localhost:8000/fournisseurs/${data.id}/`, values);
             message.success("Fournisseur modifié avec succès !");
             console.log('Fournisseur Modifié :', response.data);
         } catch (error) {

@@ -6,6 +6,8 @@ import { Button, Layout, Menu, theme, Card, Col, Row, Flex, Form, Input, InputNu
 import { getCommandeClient, getClients, getProduits } from "../services/api";
 
 import axios from "axios";
+import axiosInstance from '../services/axiosInstance';
+
 
 const STATUT_CHOICES = [
     {
@@ -32,27 +34,27 @@ const STATUT_CHOICES = [
 ]
 function ModifierCommande({ data }) {
     const [form] = Form.useForm();
-   
-     const [produits, setProduits] = useState([]);
-        const [clients, setClients] = useState([]);
-        
-            useEffect(() => {
-                getProduits().then(setProduits);
-                getProduits().catch(error => console.error("Erreur lors du chargement des produits :", error));
-                getClients().then(setClients);
-                getClients().catch(error => console.error("Erreur lors du chargement des clients :", error));
-            }, [])
-        
-   
+
+    const [produits, setProduits] = useState([]);
+    const [clients, setClients] = useState([]);
+
+    useEffect(() => {
+        getProduits().then(setProduits);
+        getProduits().catch(error => console.error("Erreur lors du chargement des produits :", error));
+        getClients().then(setClients);
+        getClients().catch(error => console.error("Erreur lors du chargement des clients :", error));
+    }, [])
+
+
 
     useEffect(() => {
         if (data && Object.keys(data).length > 0) {
             form.setFieldsValue({
-                produits: data.produits,  
+                produits: data.produits,
                 qte: data.qte,
                 client: data.client,
                 statut: data.statut,
-               
+
             });
         }
     }, [data, form]);
@@ -71,67 +73,76 @@ function ModifierCommande({ data }) {
         },
     };
 
+
     const onFinish = async (values) => {
-        try {
-            const response = await axios.put(`http://localhost:8000/commandesClient/${data.id}/`, values);
-            message.success("Client modifié avec succès !");
-            console.log('Client Modifié :', response.data);
-        } catch (error) {
-            message.error("Erreur lors de la modification du Client !");
-            console.error('Erreur :', error);
+        const p = produits.find(p => p.id === values.produits)
+        console.log("valeurs", values);
+        if (values.qte >( parseInt(p.qte - p.seuil) ) && (values.statut === 'LIVREE' || values.statut === 'EXPEDIEE' || values.statut === 'PREPAREE')) {
+            message.error("Le produit ne peut passer a ce statut . Insuffisance du stock");
         }
+        else {
+            try {
+                const response = await axiosInstance.put(`http://localhost:8000/commandesClient/${data.id}/`, values);
+                message.success("Commande Client modifié avec succès !");
+                console.log('Commande Client Modifié :', response.data);
+            } catch (error) {
+                message.error("Erreur lors de la modification du Client !");
+                console.error('Erreur :', error);
+            }
+        }
+
     };
 
     return (
-       <Form
-               {...layout}
-               name="nest-messages"
-               onFinish={onFinish}
-               style={{ maxWidth: 600 }}
-               validateMessages={validateMessages}
-               form={form}
-           >
-               <fieldset>
-                   <legend> <h5>Modifier une Commande</h5> </legend>
-                   <Form.Item name='produits' label="Produit" rules={[{ required: true }]}>
-                       <Select>
-                           {produits.map((produit) => (
-                               <Select.Option key={produit.id} value={produit.id} >{produit.nom}</Select.Option>
-                           ))}
-       
-                       </Select>
-                   </Form.Item>
-        
-                   <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
-                       <InputNumber style={{ width: "100%" }} />
-                   </Form.Item>
-                   <Form.Item name='client' label="Client" rules={[{ required: true }]}>
-                       <Select>
-                           {clients.map((client) => (
-                               <Select.Option key={client.id} value={client.id} >{client.nom}</Select.Option>
-                           ))}
-       
-                       </Select>
-                   </Form.Item>
-                   <Form.Item name='statut' label="Statut" rules={[{ required: true }]}>
-                       <Select>
-                           {STATUT_CHOICES.map((statut) => (
-                               <Select.Option key={statut.id} value={statut.libelle} >{statut.libelle}</Select.Option>
-                           ))}
-       
-                       </Select>
-                   </Form.Item>
-        
-                   
-       
-                   <Form.Item label={null}>
-                       <Button type="primary" htmlType="submit" >
-                           Modifier Commande
-                       </Button>
-                   </Form.Item>
-               </fieldset>
-       
-           </Form>
+        <Form
+            {...layout}
+            name="nest-messages"
+            onFinish={onFinish}
+            style={{ maxWidth: 600 }}
+            validateMessages={validateMessages}
+            form={form}
+        >
+            <fieldset>
+                <legend> <h5>Modifier une Commande</h5> </legend>
+                <Form.Item name='produits' label="Produit" rules={[{ required: true }]}>
+                    <Select>
+                        {produits.map((produit) => (
+                            <Select.Option key={produit.id} value={produit.id} >{produit.nom}</Select.Option>
+                        ))}
+
+                    </Select>
+                </Form.Item>
+
+                <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
+                    <InputNumber style={{ width: "100%" }} />
+                </Form.Item>
+                <Form.Item name='client' label="Client" rules={[{ required: true }]}>
+                    <Select>
+                        {clients.map((client) => (
+                            <Select.Option key={client.id} value={client.id} >{client.nom}</Select.Option>
+                        ))}
+
+                    </Select>
+                </Form.Item>
+                <Form.Item name='statut' label="Statut" rules={[{ required: true }]}>
+                    <Select>
+                        {STATUT_CHOICES.map((statut) => (
+                            <Select.Option key={statut.id} value={statut.libelle} >{statut.libelle}</Select.Option>
+                        ))}
+
+                    </Select>
+                </Form.Item>
+
+
+
+                <Form.Item label={null}>
+                    <Button type="primary" htmlType="submit" >
+                        Modifier Commande
+                    </Button>
+                </Form.Item>
+            </fieldset>
+
+        </Form>
     );
 }
 
@@ -143,8 +154,8 @@ export function EditCommandeClient() {
     const { id } = useParams();
 
     const [Commande, setCommande] = useState([]);
-    
-    console.log({id});
+
+    console.log({ id });
     useEffect(() => {
         getCommandeClient(id).then(setCommande);
         getCommandeClient().catch(error => console.error("Erreur lors du chargement des Clients :", error));
@@ -157,7 +168,7 @@ export function EditCommandeClient() {
 
                 <Row>
                     <Col span={24}>
-                        <ModifierCommande data={Commande}/>
+                        <ModifierCommande data={Commande} />
                     </Col>
                 </Row>
             </Flex>

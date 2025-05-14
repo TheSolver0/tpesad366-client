@@ -22,9 +22,11 @@ import {
   flexRender,
 } from '@tanstack/react-table';
 import axios from "axios";
+import axiosInstance from '../services/axiosInstance';
 
 
 const { Content } = Layout;
+
 
 
 function AjouterFournisseur({ onFournisseurAdded }) {
@@ -63,7 +65,7 @@ function AjouterFournisseur({ onFournisseurAdded }) {
     let delai_livraison = jr_livraison + ' 00:00:00';
 
     try {
-      const response = await axios.post('http://localhost:8000/users/', {
+      const response = await axiosInstance.post('http://localhost:8000/users/', {
         nom,
         email,
         adresse,
@@ -246,7 +248,7 @@ export function Fournisseurs() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:8000/fournisseurs/${id}/`);
+      await axiosInstance.delete(`http://localhost:8000/fournisseurs/${id}/`);
       message.success("Fournisseur supprimé avec succès.");
       setFournisseurs(prev => prev.filter(c => c.id !== id));
     } catch (error) {

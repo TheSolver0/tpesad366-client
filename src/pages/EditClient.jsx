@@ -6,6 +6,8 @@ import { Button, Layout, Menu, theme, Card, Col, Row, Flex, Form, Input, InputNu
 import { getClient } from "../services/api";
 
 import axios from "axios";
+import axiosInstance from '../services/axiosInstance';
+
 
 function ModifierClient({ data }) {
     const [form] = Form.useForm();
@@ -40,7 +42,7 @@ function ModifierClient({ data }) {
 
     const onFinish = async (values) => {
         try {
-            const response = await axios.put(`http://localhost:8000/clients/${data.id}/`, values);
+            const response = await axiosInstance.put(`http://localhost:8000/clients/${data.id}/`, values);
             message.success("Client modifié avec succès !");
             console.log('Client Modifié :', response.data);
         } catch (error) {

@@ -28,7 +28,6 @@ const { Content } = Layout;
 
 
 
-
 export function Transactions() {
     const [mouvements, setMouvements] = useState([]);
     const [globalFilter, setGlobalFilter] = useState('');
@@ -50,8 +49,9 @@ export function Transactions() {
                     (row.original.type === 'SORTIE') ? 'red' : ''
             }} >{row.original.type}</span>)
         },
-        { header: 'Quantité', accessorKey: 'qte' },
         { header: 'Acteur', accessorKey: 'user_details.nom' },
+        { header: 'Produit', accessorKey: 'produit_details.nom' },
+        { header: 'Quantité', accessorKey: 'qte' },
         { header: 'Montant(XAF)', 
             id: 'montant',
             cell: ({ row }) => (<span className="badge " style={{

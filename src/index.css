@@ -59,3 +59,16 @@ h2
 .ligne-critique {
     background-color: #a71622; /* rouge clair */
 }
+.contentcentre
+{
+    background: #eceff1;
+	display: flex;
+    flex-flow: column;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+}
+.contentcentre > *
+{
+    padding: 20px;
+}
