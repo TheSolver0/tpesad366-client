@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createBrowserRouter, Outlet, RouterProvider, NavLink, useNavigation, useLocation } from "react-router-dom";
+import { createBrowserRouter, Outlet, RouterProvider, NavLink, useNavigation, useLocation, useNavigate  } from "react-router-dom";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -18,7 +18,7 @@ import {
   TagsOutlined,
   LogoutOutlined,
 } from '@ant-design/icons';
-import { Button, Layout, Menu, theme, Card, Col, Row, Flex, Spin, Avatar, Space, Form, Input, Checkbox } from 'antd';
+import { Button, Layout, Menu, theme, Card, Col, Row, Flex, Spin, Avatar, Space, Form, Input, Checkbox, Popconfirm, message } from 'antd';
 import DataTable from 'datatables.net-dt';
 import { Produits } from './pages/Produits';
 import { Clients } from './pages/Clients';
@@ -37,6 +37,7 @@ import { getMouvements, getCommandesClient, getCommandesFournisseur, getProduits
 import Login from './pages/Login';
 import PrivateRoute from './components/PrivateRoute';
 
+import axiosInstance from './services/axiosInstance';
 
 
 const router = createBrowserRouter(
@@ -155,37 +156,46 @@ function Root() {
 
   }, [])
 
-  let entrees = produits.map(p => {
-    const total = commandes
-      .filter(c => c.statut === 'LIVREE' && c.produits === p.id)
-      .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
+const [entrees, setEntrees] = useState([]);
+  const [sorties, setSorties] = useState([]);
+  const [gains, setGains] = useState([]);
 
-    return total.toLocaleString('fr-FR');
-  });
+  useEffect(() => {
+    const newEntrees = produits.map(p => {
+      const total = commandes
+        .filter(c => c.statut === 'LIVREE' && c.produits === p.id)
+        .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
+      return total.toLocaleString('fr-FR');
+    });
 
-  let sorties = produits.map(p => {
-    const total = commandesF
-      .filter(c => c.statut === 'LIVREE' && c.produits === p.id)
-      .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
+    const newSorties = produits.map(p => {
+      const total = commandesF
+        .filter(c => c.statut === 'LIVREE' && c.produits === p.id)
+        .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
+      return total.toLocaleString('fr-FR');
+    });
 
-    return total.toLocaleString('fr-FR');
-  });
+    const newGains = produits.map(p => {
+      const totale = commandes
+        .filter(c => c.statut === 'LIVREE' && c.produits === p.id)
+        .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
+      const totalf = commandesF
+        .filter(c => c.statut === 'LIVREE' && c.produits === p.id)
+        .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
+      const total = totale - totalf;
+      return total.toLocaleString('fr-FR');
+    });
 
-  let gains = produits.map(p => {
-    const totale = commandes
-      .filter(c => c.statut === 'LIVREE' && c.produits === p.id)
-      .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
-    const totalf = commandesF
-      .filter(c => c.statut === 'LIVREE' && c.produits === p.id)
-      .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
-    const total = totale - totalf
+    setEntrees(newEntrees);
+    setSorties(newSorties);
+    setGains(newGains);
+  }, [produits, commandes, commandesF]); 
 
-    return total.toLocaleString('fr-FR');
-  });
   const color = parseFloat(gains) > 0 ? '#b7e4c7' : '#660708';
   // console.log('user', localStorage.getItem('user'));
   const user = JSON.parse(localStorage.getItem('user')); // ou via ton state global
   const isAdmin = user.is_superuser;
+  const isAuth = user ? true : false;
   console.log('us', user.is_superuser);
 
   const menuItems = [
@@ -244,6 +254,7 @@ function Root() {
 
       ],
     },
+    
     (isAdmin
       ? {
         key: '9',
@@ -252,6 +263,7 @@ function Root() {
       }
       : {}
     ),
+
     // {
     //   key: '9',
     //   label: (
@@ -260,6 +272,32 @@ function Root() {
     //   icon: <SettingOutlined />,
     // }
   ]
+  
+const navigate = useNavigate();
+  const confirm = async e => {
+    console.log(e);
+    const refreshToken = localStorage.getItem('refreshToken');
+    try {
+      const response = await axiosInstance.post('http://localhost:8000/auth/logout/', {
+        refresh: refreshToken 
+      });
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      message.success("Déconnexion effectuée");
+      setTimeout(() => {
+      navigate('/login'); // ou '/'
+
+      },1000);
+    } catch (error) {
+      message.error("Erreur lors de la déconnexion !");
+      console.error('Erreur lors de la deconnexion', error);
+    }
+  };
+  const cancel = e => {
+    console.log(e);
+    // message.error('Click on No');
+  };
 
   return (
     <>
@@ -269,7 +307,17 @@ function Root() {
           <div className="demo-logo-vertical" >
             <Space direction="vertical" size={16}>
               <Space wrap size={1}>
-                <Avatar size={40} icon={<UserOutlined />} /> <span style={{ color: 'white' }}>{user.nom ?? 'Admin'}</span>
+                <Avatar size={40} icon={<UserOutlined />} /> <span style={{ color: 'white' }}>{user.nom ?? 'Admin'} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  <Popconfirm
+                    title="Déconnexion"
+                    description="Voulez vous vraiment vous déconnectez?"
+                    onConfirm={confirm}
+                    onCancel={cancel}
+                    okText="Oui"
+                    cancelText="Non"
+                  >
+                    <Button style={{ background: 'transparent' }} danger><LogoutOutlined /></Button>
+                  </Popconfirm></span>
               </Space>
             </Space>
           </div>
@@ -304,9 +352,8 @@ function Root() {
                 color: 'white',
               }}
             />
-            <span> <b><em>Tpe inf SAD 366: Application de gestion de stock</em></b> </span>
+            <span style={{ textAlign: 'right' }}> <b><em>Tpe inf SAD 366: Application de gestion de stock</em></b> </span>
             <span >
-            <LogoutOutlined />
 
             </span>
           </Header>

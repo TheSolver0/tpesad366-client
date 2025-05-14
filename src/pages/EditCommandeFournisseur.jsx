@@ -34,27 +34,27 @@ const STATUT_CHOICES = [
 ]
 function ModifierCommande({ data }) {
     const [form] = Form.useForm();
-   
-     const [produits, setProduits] = useState([]);
-        const [fournisseurs, setFournisseurs] = useState([]);
-        
-            useEffect(() => {
-                getProduits().then(setFournisseurs);
-                getProduits().catch(error => console.error("Erreur lors du chargement des produits :", error));
-                getFournisseurs().then(setFournisseurs);
-                getFournisseurs().catch(error => console.error("Erreur lors du chargement des clients :", error));
-            }, [])
-        
-   
+
+    const [produits, setProduits] = useState([]);
+    const [fournisseurs, setFournisseurs] = useState([]);
+
+    useEffect(() => {
+        getProduits().then(setFournisseurs);
+        getProduits().catch(error => console.error("Erreur lors du chargement des produits :", error));
+        getFournisseurs().then(setFournisseurs);
+        getFournisseurs().catch(error => console.error("Erreur lors du chargement des clients :", error));
+    }, [])
+
+
 
     useEffect(() => {
         if (data && Object.keys(data).length > 0) {
             form.setFieldsValue({
-                produits: data.produits,  
+                produits: data.produits,
                 qte: data.qte,
                 fournisseur: data.fournisseur,
                 statut: data.statut,
-               
+
             });
         }
     }, [data, form]);
@@ -75,94 +75,114 @@ function ModifierCommande({ data }) {
 
     const onFinish = async (values) => {
         const { qte, produits, fournisseur, fournisseur_produit, statut } = values;
-
-        if(fournisseur_produit.includes(produits))
-            {
-        try {
-            const response = await axiosInstance.put(`http://localhost:8000/commandesFournisseur/${data.id}/`, {
-                produits,
-                qte,
-                fournisseur,
-                statut
-            });
-            // const response = await axios.put(`http://localhost:8000/commandesFournisseur/${data.id}/`, values);
-            message.success("Commande modifié avec succès !");
-            console.log('Commande Modifié :', response.data);
-        } catch (error) {
-            message.error("Erreur lors de la modification de la Commande !");
-            console.error('Erreur :', error);
+        console.log("fp", fournisseur_produit);
+        if(fournisseur_produit){
+            if (fournisseur_produit.includes(produits)) {
+            try {
+                const response = await axiosInstance.put(`http://localhost:8000/commandesFournisseur/${data.id}/`, {
+                    produits,
+                    qte,
+                    fournisseur,
+                    statut
+                });
+                // const response = await axios.put(`http://localhost:8000/commandesFournisseur/${data.id}/`, values);
+                message.success("Commande modifié avec succès !");
+                console.log('Commande Modifié :', response.data);
+            } catch (error) {
+                message.error("Erreur lors de la modification de la Commande !");
+                console.error('Erreur :', error);
+            }
         }
+        else (
+            message.error("Ce fournisseur n'a pas ce produit dans sa liste")
+        )
         }
-                    else(
-                        message.error("Ce fournisseur n'a pas ce produit dans sa liste")
-                    )
+        else
+        {
+            try {
+                const response = await axiosInstance.put(`http://localhost:8000/commandesFournisseur/${data.id}/`, {
+                    produits,
+                    qte,
+                    fournisseur,
+                    statut
+                });
+                // const response = await axios.put(`http://localhost:8000/commandesFournisseur/${data.id}/`, values);
+                message.success("Commande modifié avec succès !");
+                console.log('Commande Modifié :', response.data);
+            } catch (error) {
+                message.error("Erreur lors de la modification de la Commande !");
+                console.error('Erreur :', error);
+            }
+        }
+        
     };
-    
+
     const handleFournisseurChange = (id) => {
         const fournisseur = fournisseurs.find(f => f.id === id);
+        console.log('f', fournisseur);
         if (fournisseur) {
             // console.log(fournisseur)
-          // Met à jour dynamiquement le champ caché avec la liste des IDs produits
-          form.setFieldsValue({
-            fournisseur_produit: fournisseur.produits, // ou JSON.stringify si besoin texte
-          });
+            // Met à jour dynamiquement le champ caché avec la liste des IDs produits
+            form.setFieldsValue({
+                fournisseur_produit: fournisseur.produits, // ou JSON.stringify si besoin texte
+            });
         }
     }
 
 
     return (
-       <Form
-               {...layout}
-               name="nest-messages"
-               onFinish={onFinish}
-               style={{ maxWidth: 600 }}
-               validateMessages={validateMessages}
-               form={form}
-           >
-               <fieldset>
-                   <legend> <h5>Modifier une Commande</h5> </legend>
-                   <Form.Item name='produits' label="Produit" rules={[{ required: true }]}>
-                       <Select>
-                           {produits.map((produit) => (
-                               <Select.Option key={produit.id} value={produit.id} >{produit.nom}</Select.Option>
-                           ))}
-       
-                       </Select>
-                   </Form.Item>
-        
-                   <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
-                       <InputNumber style={{ width: "100%" }} />
-                   </Form.Item>
-                   <Form.Item name='fournisseur' label="Fournisseur" rules={[{ required: true }]}>
-                       <Select onChange={handleFournisseurChange}>
-                           {fournisseurs.map((fournisseur) => (
-                               <Select.Option key={fournisseur.id} value={fournisseur.id} >{fournisseur.nom}</Select.Option>
-                           ))}
-       
-                       </Select>
-                   </Form.Item>
-                   <Form.Item name='statut' label="Statut" rules={[{ required: true }]}>
-                       <Select>
-                           {STATUT_CHOICES.map((statut) => (
-                               <Select.Option key={statut.id} value={statut.libelle} >{statut.libelle}</Select.Option>
-                           ))}
-       
-                       </Select>
-                   </Form.Item>
-         <Form.Item name="fournisseur_produit"  hidden>
-                                <Input type="hidden" />
-                              </Form.Item>
-        
-                   
-       
-                   <Form.Item label={null}>
-                       <Button type="primary" htmlType="submit" >
-                           Modifier Commande
-                       </Button>
-                   </Form.Item>
-               </fieldset>
-       
-           </Form>
+        <Form
+            {...layout}
+            name="nest-messages"
+            onFinish={onFinish}
+            style={{ maxWidth: 600 }}
+            validateMessages={validateMessages}
+            form={form}
+        >
+            <fieldset>
+                <legend> <h5>Modifier une Commande</h5> </legend>
+                <Form.Item name='produits' label="Produit" rules={[{ required: true }]}>
+                    <Select>
+                        {produits.map((produit) => (
+                            <Select.Option key={produit.id} value={produit.id} >{produit.nom}</Select.Option>
+                        ))}
+
+                    </Select>
+                </Form.Item>
+
+                <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
+                    <InputNumber style={{ width: "100%" }} />
+                </Form.Item>
+                <Form.Item name='fournisseur' label="Fournisseur" rules={[{ required: true }]}>
+                    <Select onChange={handleFournisseurChange}>
+                        {fournisseurs.map((fournisseur) => (
+                            <Select.Option key={fournisseur.id} value={fournisseur.id} >{fournisseur.nom}</Select.Option>
+                        ))}
+
+                    </Select>
+                </Form.Item>
+                <Form.Item name='statut' label="Statut" rules={[{ required: true }]}>
+                    <Select>
+                        {STATUT_CHOICES.map((statut) => (
+                            <Select.Option key={statut.id} value={statut.libelle} >{statut.libelle}</Select.Option>
+                        ))}
+
+                    </Select>
+                </Form.Item>
+                <Form.Item name="fournisseur_produit" hidden>
+                    <Input type="hidden" />
+                </Form.Item>
+
+
+
+                <Form.Item label={null}>
+                    <Button type="primary" htmlType="submit" >
+                        Modifier Commande
+                    </Button>
+                </Form.Item>
+            </fieldset>
+
+        </Form>
     );
 }
 
@@ -174,8 +194,8 @@ export function EditCommandeFournisseur() {
     const { id } = useParams();
 
     const [Commande, setCommande] = useState([]);
-    
-    console.log({id});
+
+    console.log({ id });
     useEffect(() => {
         getCommandeFournisseur(id).then(setCommande);
         getCommandeFournisseur().catch(error => console.error("Erreur lors du chargement des Clients :", error));
@@ -188,7 +208,7 @@ export function EditCommandeFournisseur() {
 
                 <Row>
                     <Col span={24}>
-                        <ModifierCommande data={Commande}/>
+                        <ModifierCommande data={Commande} />
                     </Col>
                 </Row>
             </Flex>
