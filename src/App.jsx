@@ -189,7 +189,7 @@ const [entrees, setEntrees] = useState([]);
     setEntrees(newEntrees);
     setSorties(newSorties);
     setGains(newGains);
-  }, [produits, commandes, commandesF]); 
+  }, [produits, commandes, commandesF]);
 
   const color = parseFloat(gains) > 0 ? '#b7e4c7' : '#660708';
   // console.log('user', localStorage.getItem('user'));
@@ -254,7 +254,7 @@ const [entrees, setEntrees] = useState([]);
 
       ],
     },
-    
+
     (isAdmin
       ? {
         key: '9',
@@ -272,14 +272,14 @@ const [entrees, setEntrees] = useState([]);
     //   icon: <SettingOutlined />,
     // }
   ]
-  
+
 const navigate = useNavigate();
   const confirm = async e => {
     console.log(e);
     const refreshToken = localStorage.getItem('refreshToken');
     try {
       const response = await axiosInstance.post('http://localhost:8000/auth/logout/', {
-        refresh: refreshToken 
+        refresh: refreshToken
       });
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
@@ -386,8 +386,8 @@ const navigate = useNavigate();
               background: 'white',
               borderRadius: borderRadiusLG,
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
-              height: "auto"
-              // overflowY: 'scroll',
+              height: "auto",
+              overflowY: 'scroll',
             }}
           >
             {loading ? <Spin size="large" style={{ display: 'flex', flexFlow: 'row', justifyContent: 'center' }} /> : <Outlet />}
