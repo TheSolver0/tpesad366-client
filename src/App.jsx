@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { createBrowserRouter, Outlet, RouterProvider, NavLink, useNavigation, useLocation, useNavigate  } from "react-router-dom";
+import React, { useState, useEffect, useMemo } from 'react';
+import { createBrowserRouter, Outlet, RouterProvider, NavLink, useNavigation, useLocation, useNavigate } from "react-router-dom";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -124,14 +124,19 @@ function Root() {
   const location = useLocation()
   const currentPath = location.pathname;
   console.log({ currentPath });
-  let defaultKey = (currentPath === "/") ? '1' :
-    (currentPath === "/produits") ? '2' :
-      (currentPath === "/clients") ? '3' :
-        (currentPath === "/transactions") ? '4' :
-          (currentPath === "/fournisseurs") ? '5' :
-            (currentPath === "/commandesfournisseurs") ? '7' :
-              (currentPath === "/commandesclients") ? '8' :
-                (currentPath === "/parametres") ? '9' : ''
+  const pathToKey = {
+    '/dashboard': '1',
+    '/produits': '2',
+    '/clients': '3',
+    '/transactions': '4',
+    '/fournisseurs': '5',
+    '/commandesfournisseurs': '7',
+    '/commandesclients': '8',
+    '/parametres': '9',
+  };
+
+  const defaultKey = pathToKey[currentPath] || '1';
+
   const [current, setCurrent] = useState(defaultKey);
   const onClick = e => {
     setCurrent(e.key);
@@ -144,59 +149,75 @@ function Root() {
   const [commandesF, setCommandesF] = useState([]);
   const [mouvements, setMouvements] = useState([]);
   useEffect(() => {
-    getMouvements().then(setMouvements);
-    getMouvements().catch(error => console.error("Erreur lors du chargement des Mouvements :", error));
+    getMouvements()
+      .then(setMouvements)
+      .catch(err => console.error("Erreur Mouvements", err));
+
     getProduits()
       .then(setProduits)
-      .catch((error) => console.error("Erreur lors du chargement des produits :", error));
-    getCommandesClient().then(setCommandes);
-    getCommandesClient().catch(error => console.error("Erreur lors du chargement des commandes :", error));
-    getCommandesFournisseur().then(setCommandesF);
-    getCommandesFournisseur().catch(error => console.error("Erreur lors du chargement des commandes :", error));
+      .catch(err => console.error("Erreur Produits", err));
 
-  }, [])
+    getCommandesClient()
+      .then(setCommandes)
+      .catch(err => console.error("Erreur Commandes Client", err));
 
-const [entrees, setEntrees] = useState([]);
-  const [sorties, setSorties] = useState([]);
-  const [gains, setGains] = useState([]);
+    getCommandesFournisseur()
+      .then(setCommandesF)
+      .catch(err => console.error("Erreur Commandes Fournisseur", err));
+  }, []);
 
-  useEffect(() => {
-    const newEntrees = produits.map(p => {
-      const total = commandes
-        .filter(c => c.statut === 'LIVREE' && c.produits === p.id)
-        .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
-      return total.toLocaleString('fr-FR');
-    });
 
-    const newSorties = produits.map(p => {
-      const total = commandesF
-        .filter(c => c.statut === 'LIVREE' && c.produits === p.id)
-        .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
-      return total.toLocaleString('fr-FR');
-    });
 
-    const newGains = produits.map(p => {
-      const totale = commandes
-        .filter(c => c.statut === 'LIVREE' && c.produits === p.id)
-        .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
-      const totalf = commandesF
-        .filter(c => c.statut === 'LIVREE' && c.produits === p.id)
-        .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
-      const total = totale - totalf;
-      return total.toLocaleString('fr-FR');
-    });
+  const totalEntrees = useMemo(() => {
+    return commandes
+      .filter(c => c.statut === 'LIVREE')
+      .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
+  }, [commandes]);
 
-    setEntrees(newEntrees);
-    setSorties(newSorties);
-    setGains(newGains);
-  }, [produits, commandes, commandesF]);
+  const totalSorties = useMemo(() => {
+    return commandesF
+      .filter(c => c.statut === 'LIVREE')
+      .reduce((somme, c) => somme + parseFloat(c.montant) / 1000, 0);
+  }, [commandesF]);
 
-  const color = parseFloat(gains) > 0 ? '#b7e4c7' : '#660708';
+  const totalGain = useMemo(() => {
+    return totalEntrees - totalSorties;
+  }, [totalEntrees, totalSorties]);
+
+
+  const color = totalGain > 0 ? '#b7e4c7' : '#660708';
+  // const gains = totalGain.toLocaleString('fr-FR', { style: 'currency', currency: 'XAF' }).replace('XAF', '').trim();
+  // console.log('Gains', gains);
+
   // console.log('user', localStorage.getItem('user'));
   const user = JSON.parse(localStorage.getItem('user')); // ou via ton state global
   const isAdmin = user.is_superuser;
   const isAuth = user ? true : false;
-  console.log('us', user.is_superuser);
+  console.log('Is Admin', isAdmin);
+  const confirm = async e => {
+    console.log(e);
+    const refreshToken = localStorage.getItem('refreshToken');
+    try {
+      const response = await axiosInstance.post('http://localhost:8000/auth/logout/', {
+        refresh: refreshToken
+      });
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      message.success("Déconnexion effectuée");
+      setTimeout(() => {
+        navigate('/login'); // ou '/'
+
+      }, 1000);
+    } catch (error) {
+      message.error("Erreur lors de la déconnexion !");
+      console.error('Erreur lors de la deconnexion', error);
+    }
+  };
+  const cancel = e => {
+    console.log(e);
+    // message.error('Click on No');
+  };
 
   const menuItems = [
     {
@@ -255,49 +276,33 @@ const [entrees, setEntrees] = useState([]);
       ],
     },
 
-    (isAdmin
-      ? {
-        key: '9',
-        label: <NavLink to="/parametres" style={{ textDecoration: 'none', color: 'inherit' }}>Paramètres</NavLink>,
-        icon: <SettingOutlined />,
-      }
-      : {}
-    ),
+    ...(isAdmin ? [{
+      key: '9',
+      label: <NavLink to="/parametres" style={{ textDecoration: 'none', color: 'inherit' }}>Paramètres</NavLink>,
+      icon: <SettingOutlined />,
+    }] : []),
 
-    // {
-    //   key: '9',
-    //   label: (
-    //     <NavLink to="/parametres" style={{ textDecoration: 'none', color: 'inherit' }} > Paramètres </NavLink>
-    //   ),
-    //   icon: <SettingOutlined />,
-    // }
+
+    {
+      //  key: '11',
+      label: (
+        <Popconfirm
+          title="Déconnexion"
+          description="Voulez vous vraiment vous déconnectez?"
+          onConfirm={confirm}
+          onCancel={cancel}
+          okText="Oui"
+          cancelText="Non"
+        >
+          <Button style={{ background: 'white', width: '100%' }} danger><LogoutOutlined /></Button>
+        </Popconfirm>
+      ),
+      //  icon: <LogoutOutlined />,
+    }
   ]
 
-const navigate = useNavigate();
-  const confirm = async e => {
-    console.log(e);
-    const refreshToken = localStorage.getItem('refreshToken');
-    try {
-      const response = await axiosInstance.post('http://localhost:8000/auth/logout/', {
-        refresh: refreshToken
-      });
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-      message.success("Déconnexion effectuée");
-      setTimeout(() => {
-      navigate('/login'); // ou '/'
+  const navigate = useNavigate();
 
-      },1000);
-    } catch (error) {
-      message.error("Erreur lors de la déconnexion !");
-      console.error('Erreur lors de la deconnexion', error);
-    }
-  };
-  const cancel = e => {
-    console.log(e);
-    // message.error('Click on No');
-  };
 
   return (
     <>
@@ -308,16 +313,7 @@ const navigate = useNavigate();
             <Space direction="vertical" size={16}>
               <Space wrap size={1}>
                 <Avatar size={40} icon={<UserOutlined />} /> <span style={{ color: 'white' }}>{user.nom ?? 'Admin'} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                  <Popconfirm
-                    title="Déconnexion"
-                    description="Voulez vous vraiment vous déconnectez?"
-                    onConfirm={confirm}
-                    onCancel={cancel}
-                    okText="Oui"
-                    cancelText="Non"
-                  >
-                    <Button style={{ background: 'transparent' }} danger><LogoutOutlined /></Button>
-                  </Popconfirm></span>
+                </span>
               </Space>
             </Space>
           </div>
@@ -360,22 +356,23 @@ const navigate = useNavigate();
           <Flex gap="middle" align="space-around" vertical className='flexCardstat'>
             <Row gutter={18}>
               <Col span={8}>
-                <Card title="Entrées(XAF)" variant="borderless" style={{ background: "#57cc99", color: '#081c15' }}>
-                  +{(entrees.length === 0) ? 0 : entrees}K
+                <Card title="Entrées (XAF)" variant="borderless" style={{ background: "#57cc99", color: '#081c15' }}>
+                  +{totalEntrees.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}K
                 </Card>
               </Col>
               <Col span={8}>
-                <Card title="Sorties(XAF)" variant="borderless" style={{ background: "#e5383b", color: 'white' }}>
-                  -{(sorties.length === 0) ? 0 : sorties}K
+                <Card title="Sorties (XAF)" variant="borderless" style={{ background: "#e5383b", color: 'white' }}>
+                  -{totalSorties.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}K
                 </Card>
               </Col>
               <Col span={8}>
-                <Card title="Gains(XAF)" variant="borderless" style={{ background: "#e76f51", color }}>
-                  {(gains.length === 0) ? 0 : gains}K
+                <Card title="Gains (XAF)" variant="borderless" style={{ background: "#e76f51", color: totalGain > 0 ? '#b7e4c7' : '#660708' }}>
+                  {totalGain.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}K
                 </Card>
               </Col>
             </Row>
           </Flex>
+
 
           {/* <Flex  gap="middle" align="space-evenly" vertical> */}
           <Content

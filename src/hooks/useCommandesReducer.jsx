@@ -13,12 +13,17 @@ const initialState = {
       case "NOUVELLES_LIVRAISONS":
         // Met à jour l'état et sauvegarde dans localStorage
         const nouvellesLivrees = [...state.dejaTraitees, ...action.payload.map(c => c.id)];
-        const nouvellesPreparees = [...state.dejaPreparees, ...action.payload.map(c => c.id)];
         localStorage.setItem('commandesLivrees', JSON.stringify(nouvellesLivrees));
-        localStorage.setItem('commandesPreparees', JSON.stringify(nouvellesPreparees));
         return {
           ...state,
           dejaTraitees: nouvellesLivrees,
+        };
+      case "NOUVELLES_PREPARATIONS":
+        // Met à jour l'état et sauvegarde dans localStorage
+        const nouvellesPreparees = [...state.dejaPreparees, ...action.payload.map(c => c.id)];
+        localStorage.setItem('commandesPreparees', JSON.stringify(nouvellesPreparees));
+        return {
+          ...state,
           dejaPreparees: nouvellesPreparees,
         };
       default:
@@ -41,7 +46,7 @@ export function useCommandesReducer(commandes) {
       cmd => !dejaTraitees.includes(cmd.id)
     );
     const nouvellesPreparations = commandesPreparees.filter(
-      cmd => !dejaTraitees.includes(cmd.id)
+      cmd => !dejaPreparees.includes(cmd.id)
     );
 
     if (nouvellesPreparations.length > 0) {
@@ -56,6 +61,12 @@ export function useCommandesReducer(commandes) {
   
         axiosInstance.put(`http://localhost:8000/produits/${cmd.produits}/`, newProduit);
       });
+        // Sauvegarde directe dans le localStorage
+      const nouveauxIds = [...dejaPreparees, ...nouvellesPreparations.map(c => c.id)];
+      localStorage.setItem('commandesPreparees', JSON.stringify(nouveauxIds));
+
+      // Met à jour le reducer
+      dispatch({ type: "NOUVELLES_PREPARATIONS", payload: nouvellesPreparations });
     }
   
     if (nouvellesLivraisons.length > 0) {
