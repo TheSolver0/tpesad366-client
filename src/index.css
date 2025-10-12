@@ -3,14 +3,16 @@
 *::before
 {
     box-sizing: inherit;
+    /* font-family: Arial, Helvetica, sans-serif; */
+    font: 1.05em sans-serif;
+    /* font-weight: 500; */
 }
 html, body {
     height: 100%;
     margin: 0;
     scroll-behavior: smooth;
-    /* font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif ; */
     overflow: visible !important;
-    background:#ced4da !important;
+    /* background:#ced4da !important; */
 }
 .demo-logo-vertical
 {
@@ -21,26 +23,61 @@ html, body {
 }
 .flexCardstat
 {
-    margin: 10px;
-    margin-left: 10vw;
+    /* margin: 10px; */
+    margin-left: -10px;
+    width: 100%;
+    margin-top: 50px;
+    position: relative;
 }
 .ant-card
 {
     /* color: white; */
-    font-weight: 700; 
+    /* font-weight: 700;  */
     cursor: pointer;
     border-radius: 30px;
-    box-shadow: 4px 4px 8px black;
-    width: 50%;
+    /* box-shadow: 4px 4px 8px black; */
+    width: 270px;
+    border: 1px solid #ededed;
+    margin: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+
 }
 .ant-card-head
 {
     /* color: white !important; */
+    border-bottom: none !important;
+    font-weight: 550 !important;
+    font-family: Arial, Helvetica, sans-serif !important;
 }
-table, th, td
+table
+{
+    /* margin-top: 100px; */
+    border-collapse: collapse;
+     width: 100%;
+    max-width: 100%;
+    table-layout: fixed; /* force répartition égale des colonnes et évite le débordement */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-size: small;
+    position: relative;
+}
+th, td
 {
     text-align: center !important;
     /* border: 1px solid gray; */
+    /* width: 10px !important; */
+    overflow: hidden;           /* cache le contenu trop long */
+    text-overflow: ellipsis;    /* … pour le texte tronqué */
+    white-space: nowrap;
+    
+}
+tbody
+{
+}
+th, thead
+{
+    background-color: #f6f4ff !important;
+    color: #bfb6ed;
 }
 h2
 {
@@ -61,7 +98,7 @@ h2
 }
 .contentcentre
 {
-    background: #eceff1;
+    /* background: #eceff1; */
 	display: flex;
     flex-flow: column;
 	justify-content: center;
@@ -71,4 +108,89 @@ h2
 .contentcentre > *
 {
     padding: 20px;
+}
+.ant-layout-sider
+{
+    position: fixed;
+    z-index: 100;
+    background: #f6f4ff !important;
+    color:#09022b !important;
+
+}
+.ant-menu
+{
+    background: #f6f4ff !important;
+    color: #09022b !important;
+}
+.Header
+{
+    position: fixed;
+    z-index: 99;
+    width: 100vw;
+    color:#09022b !important;
+    background: white !important;
+    text-align: right;
+}
+.buttonHeader
+{
+    color:#09022b;
+    margin-left: 170px;
+    margin-top: 10px;
+    
+}
+.site-layout
+{
+    background: white !important;
+}
+.Menu
+{
+    color: #09022b !important;
+}
+.Menu > *:hover, .ant-menu-item-selected 
+{
+    background: #8370fe !important;
+    color: white !important;
+    border-radius: 45px !important;
+}
+.contentBody
+{
+    display: flex;
+    flex-flow: row;
+    /* margin-left: 1px; */
+    /* justify-content: center; */
+}
+.produits
+{
+    border: 1px solid #ededed;
+    /* max-width: 100%; */
+    width: 750px;
+    border-radius: 25px;
+    padding: 20px;
+    margin-right: 15px; 
+    display: flex;
+    flex-flow: column;
+    align-items: flex-start;
+    position: relative;
+    box-sizing: border-box; /* pour que padding soit pris en compte */
+    overflow: hidden;   
+}
+
+.addProduit
+{
+    border: 1px solid #ededed;
+    /* max-width: 100%; */
+    width: 350px;
+    border-radius: 25px;
+    padding: 20px;
+    margin-right: -80px;
+    /* margin-left: 12px; */
+
+}
+.boutonAddProduit
+{
+    padding: 22px;
+    border-radius: 30px;
+    background: #8370fe;
+    color: white;
+    border: 1px solid #8370fe;
 }

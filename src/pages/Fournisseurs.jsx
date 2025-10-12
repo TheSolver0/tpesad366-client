@@ -12,7 +12,7 @@ import {
 
 } from '@ant-design/icons';
 import DataTable from 'datatables.net-dt';
-import { getFournisseurs, getProduits } from "../services/api";
+import { getFournisseurs, getProduits, API_URL } from "../services/api";
 import {
   useReactTable,
   getCoreRowModel,
@@ -59,20 +59,20 @@ function AjouterFournisseur({ onFournisseurAdded }) {
     },
   };
   const onFinish = async (values) => {
-    const { nom, email, adresse, telephone, produits, jr_livraison } = values;
+    const { name, email, address, telephone, products, delay, jr_livraison } = values;
     console.log(values);
     let role = 'FOURNISSEUR'
     let delai_livraison = jr_livraison + ' 00:00:00';
 
     try {
-      const response = await axiosInstance.post('http://localhost:8000/users/', {
-        nom,
+      const response = await axiosInstance.post(`${API_URL}Suppliers/`, {
+        name,
         email,
-        adresse,
+        address,
         telephone,
-        role,
-        produits,
-        delai_livraison
+        // role,
+        products,
+        delay
       });
 
       message.success("Fournisseur Enregistré avec succès !");
@@ -80,7 +80,7 @@ function AjouterFournisseur({ onFournisseurAdded }) {
       onFournisseurAdded(response.data);
       console.log('Fournisseur enregistré :', response.data);
     } catch (error) {
-      message.error("Erreur lors de l’ajout du produit !");
+      message.error("Erreur lors de l’ajout du fournisseur !");
       console.error('Erreur lors de l’ajout', error);
     }
   };
@@ -96,19 +96,19 @@ function AjouterFournisseur({ onFournisseurAdded }) {
   >
     <fieldset>
       <legend> <h5>Ajouter un Fournisseur</h5> </legend>
-      <Form.Item name='nom' label="Nom" rules={[{ required: true }]} >
+      <Form.Item name='name' label="Nom" rules={[{ required: true }]} >
         <Input />
       </Form.Item>
       <Form.Item name='email' label="E-mail" rules={[{ required: true }]} >
         <Input />
       </Form.Item>
-      <Form.Item name='adresse' label="Adresse" rules={[{ required: true }]}>
+      <Form.Item name='address' label="Adresse" rules={[{ required: true }]}>
         <Input />
       </Form.Item>
       <Form.Item name='telephone' label="Téléphone" rules={[{ type: 'number', min: 0, required: true }]}>
         <InputNumber style={{ width: "100%" }} />
       </Form.Item>
-      <Form.Item name='produits' label="Produits" rules={[{ required: true }]}>
+      <Form.Item name='products' label="Produits" rules={[{ required: true }]}>
         <Select mode="multiple" placeholder="Sélectionnez des produits">
           {produits.map((produit) => (
             <Select.Option key={produit.id} value={produit.id} >{produit.nom}</Select.Option>
@@ -116,7 +116,7 @@ function AjouterFournisseur({ onFournisseurAdded }) {
 
         </Select>
       </Form.Item>
-      <Form.Item name='jr_livraison' label="Delai de livraison(jrs)" rules={[{ required: true }]}>
+      <Form.Item name='delay' label="Delai de livraison(jrs)" rules={[{ required: true }]}>
         <InputNumber min={1} placeholder="Ex: 3" />
       </Form.Item>
 
@@ -145,16 +145,16 @@ export function Fournisseurs() {
   }, []);
   const columns = [
     { header: 'ID', accessorKey: 'id' },
-    { header: 'Nom', accessorKey: 'nom' },
+    { header: 'Nom', accessorKey: 'name' },
     { header: 'Email', accessorKey: 'email' },
-    { header: 'Adresse', accessorKey: 'adresse' },
+    { header: 'Adresse', accessorKey: 'address' },
     { header: 'Téléphone', accessorKey: 'telephone' },
     {
       header: 'Liste de Produits',
       id: 'produits_details',
       cell: ({ row }) => {
-        const produits = row.original.produits_details || []; // tableau d’objets produits
-    
+        const produits = row.original.products || []; // tableau d’objets produits
+
         return (
           <div
             style={{
@@ -178,11 +178,11 @@ export function Fournisseurs() {
         );
       },
     },
-    
+
     {
-      header: 'Delais de livraison(jrs)',
+      header: 'Delais(jrs)',
       id: 'delai_livraison',
-      cell: ({ row }) => (row.original.delai_livraison.split('0')[0]),
+      cell: ({ row }) => (row.original.delay),
     },
     {
       header: 'Actions',
@@ -265,35 +265,36 @@ export function Fournisseurs() {
   return (
 
     <>
-      <h2>Table des fournisseurs</h2>
-      {/* <Button color='#1677ff' variant="solid" icon={<PlusSquareOutlined />} size={size} onClick={showModal}>
+      <div className="contentBody">
+        <div className="produits">
+          <h2>Table des fournisseurs</h2>
+          {/* <Button color='#1677ff' variant="solid" icon={<PlusSquareOutlined />} size={size} onClick={showModal}>
                     Enregistrer un Fournisseur
                 </Button> */}
-      {/* <Button onClick={() => message.success("Test de message")}>Tester message</Button> */}
+          {/* <Button onClick={() => message.success("Test de message")}>Tester message</Button> */}
 
-      {/* <Modal
+          {/* <Modal
                     title="Enregistrement de Fournisseur"
                     open={open}
                     onOk={handleOk}
                     confirmLoading={confirmLoading}
                     onCancel={handleCancel}
                 > */}
-      {/* <FormAjout /> */}
-      {/* </Modal> */}
-      <Input
-        placeholder="Rechercher..."
-        value={globalFilter || ''}
-        onChange={e => setGlobalFilter(e.target.value)}
-        style={{ marginBottom: '1rem', width: '300px' }}
-      />
+          {/* <FormAjout /> */}
+          {/* </Modal> */}
+          <Input
+            placeholder="Rechercher..."
+            value={globalFilter || ''}
+            onChange={e => setGlobalFilter(e.target.value)}
+            style={{ marginBottom: '1rem', width: '300px' }}
+          />
 
-      <Row justify="space-between">
-        <Col span={17}>
-          <table className="table  table-hover table-striped-columns  align-middle">
+
+          <table className="table  table-hover">
             <caption>Liste des fournisseurs</caption>
 
 
-            <thead className="table-dark">
+            <thead className="table-light">
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map(header => (
@@ -351,13 +352,16 @@ export function Fournisseurs() {
               Page {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
             </span>
           </div>
-        </Col>
-        <Col span={5} style={{ marginTop: '-60px' }}>
+        </div>
+
+        <div className="addProduit">
+
           <AjouterFournisseur onFournisseurAdded={(newFournisseur) => setFournisseurs(prev => [...prev, newFournisseur])} />
 
 
-        </Col>
-      </Row>
+        </div>
+      </div>
+
 
     </>
 

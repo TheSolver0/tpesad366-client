@@ -1,35 +1,35 @@
 import axios from "axios";
 import axiosInstance from "./axiosInstance";
 
-const API_URL = "http://localhost:8000/";
+export const API_URL = "http://localhost:5273/api/";
 
 
 export const getProduits = async () => {
-  const response = await axiosInstance.get(`${API_URL}produits/`);
+  const response = await axiosInstance.get(`${API_URL}Products`);
   return response.data;
 };
   export const getProduit = async (id) => {
-    const response = await axiosInstance.get(`${API_URL}produits/${id}`);
+    const response = await axiosInstance.get(`${API_URL}Products/${id}`);
     return response.data;
   };
 export const getCategories = async () => {
-  const response = await axiosInstance.get(`${API_URL}categories/`);
+  const response = await axiosInstance.get(`${API_URL}Categories/`);
   return response.data;
 };
 export const getClients = async () => {
-  const response = await axiosInstance.get(`${API_URL}clients/`);
+  const response = await axiosInstance.get(`${API_URL}Customers/`);
   return response.data;
 };
 export const getClient = async (id) => {
-  const response = await axiosInstance.get(`${API_URL}clients/${id}`);
+  const response = await axiosInstance.get(`${API_URL}Customers/${id}`);
   return response.data;
 };
 export const getFournisseurs = async () => {
-  const response = await axiosInstance.get(`${API_URL}fournisseurs/`);
+  const response = await axiosInstance.get(`${API_URL}Suppliers/`);
   return response.data;
 };
 export const getFournisseur = async (id) => {
-  const response = await axiosInstance.get(`${API_URL}fournisseurs/${id}`);
+  const response = await axiosInstance.get(`${API_URL}Suppliers/${id}`);
   return response.data;
 };
 export const getMouvements = async () => {

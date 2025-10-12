@@ -50,7 +50,8 @@ const router = createBrowserRouter(
       path: '/',
 
       // element: <Root />,
-      element: <PrivateRoute><Root /></PrivateRoute>,
+      element: <Root />,
+      // element: <PrivateRoute><Root /></PrivateRoute>,
       children: [
         {
           path: '/dashboard',
@@ -283,7 +284,7 @@ function Root() {
     }] : []),
 
 
-    {
+    /*{
       //  key: '11',
       label: (
         <Popconfirm
@@ -298,7 +299,7 @@ function Root() {
         </Popconfirm>
       ),
       //  icon: <LogoutOutlined />,
-    }
+    }*/
   ]
 
   const navigate = useNavigate();
@@ -309,65 +310,81 @@ function Root() {
       <Layout style={{ height: "100vh" }}>
 
         <Sider trigger={null} collapsible collapsed={collapsed} style={{ height: "100vh" }}>
-          <div className="demo-logo-vertical" >
-            <Space direction="vertical" size={16}>
-              <Space wrap size={1}>
-                <Avatar size={40} icon={<UserOutlined />} /> <span style={{ color: 'white' }}>{user.nom ?? 'Admin'} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                </span>
-              </Space>
+           <div className="demo-logo-vertical" >
+            <Space direction="horizontal" size={5} style={{margin:10}}>
+              
+                <Avatar size={40} icon={<UserOutlined />} /> <h4>{user.nom ?? 'Admin'} 
+                </h4>
+              
             </Space>
           </div>
 
+           <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              className='buttonHeader'
+            />
+          
           <Menu
-            theme="dark"
+            theme="light"
             mode="inline"
             onClick={onClick}
             selectedKeys={[current]}
             items={menuItems}
+            className='Menu'
           />
 
         </Sider>
 
-        <Layout style={{ position: "relative" }}>
+        <Layout style={{ position: "relative" }} className="site-layout" >
 
-          <Header
-            style={{
-              padding: 0,
-              background: '#001529',
-              color: 'white'
-            }}
+          <Header className='Header'
           >
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              style={{
-                fontSize: '16px',
-                width: 64,
-                height: 64,
-                color: 'white',
-              }}
-            />
-            <span style={{ textAlign: 'right' }}> <b><em>Tpe inf SAD 366: Application de gestion de stock</em></b> </span>
-            <span >
+           
+            <h1 style={{ textAlign: 'right' }}> Bienvenue, Luc! </h1>
 
-            </span>
+            
           </Header>
-          <Flex gap="middle" align="space-around" vertical className='flexCardstat'>
-            <Row gutter={18}>
-              <Col span={8}>
-                <Card title="Entrées (XAF)" variant="borderless" style={{ background: "#57cc99", color: '#081c15' }}>
-                  +{totalEntrees.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}K
+           <Content style={{ padding: '0 48px' }}>
+        
+        <div
+          style={{
+            padding: 24,
+            minHeight: 380,
+            marginLeft: 150,
+          }}
+        >
+          
+          <Flex className='flexCardstat'>
+            <Row gutter={75}>
+              <Col span={6}>
+                <Card title="Total Solde" variant="borderless" 
+                // style={{ background: "#57cc99", color: '#081c15' }}
+                >
+                  XAF &nbsp; {totalEntrees.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}
+                  
                 </Card>
               </Col>
-              <Col span={8}>
-                <Card title="Sorties (XAF)" variant="borderless" style={{ background: "#e5383b", color: 'white' }}>
-                  -{totalSorties.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}K
+              <Col span={6}>
+                <Card title="Entrées" variant="borderless" 
+                // style={{ background: "#e5383b", color: 'white' }}
+                >
+                  XAF &nbsp; {totalSorties.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}
                 </Card>
               </Col>
-              <Col span={8}>
-                <Card title="Gains (XAF)" variant="borderless" style={{ background: "#e76f51", color: totalGain > 0 ? '#b7e4c7' : '#660708' }}>
-                  {totalGain.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}K
+              <Col span={6}>
+                <Card title="Sorties" variant="borderless" 
+                // style={{ background: "#e76f51", color: totalGain > 0 ? '#b7e4c7' : '#660708' }}
+                >
+                  XAF &nbsp; {totalGain.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}
+                </Card>
+              </Col>
+              <Col span={6}>
+                <Card title="Total Bénéfice" variant="borderless" 
+                // style={{ background: "#e76f51", color: totalGain > 0 ? '#b7e4c7' : '#660708' }}
+                >
+                  XAF &nbsp; {totalGain.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}
                 </Card>
               </Col>
             </Row>
@@ -375,19 +392,21 @@ function Root() {
 
 
           {/* <Flex  gap="middle" align="space-evenly" vertical> */}
-          <Content
+          {/* <Content
             style={{
-              margin: '24px 16px',
-              padding: 24,
-              minHeight: 280,
-              background: 'white',
-              borderRadius: borderRadiusLG,
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
-              height: "auto",
-              overflowY: 'scroll',
+              // margin: '24px 16px',
+              // padding: 24,
+              // minHeight: 280,
+              // background: 'white',
+              // borderRadius: borderRadiusLG,
+              // boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
+              // height: "auto",
+              // overflowY: 'scroll',
             }}
-          >
+          > */}
             {loading ? <Spin size="large" style={{ display: 'flex', flexFlow: 'row', justifyContent: 'center' }} /> : <Outlet />}
+        </div>
+          
           </Content>
           {/* </Flex> */}
         </Layout>

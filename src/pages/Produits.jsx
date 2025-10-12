@@ -32,6 +32,8 @@ import axiosInstance from '../services/axiosInstance';
 
 function AjouterProduit({ onProduitAdded }) {
 
+
+
     const [form] = Form.useForm();
 
 
@@ -61,17 +63,19 @@ function AjouterProduit({ onProduitAdded }) {
         },
     };
     const onFinish = async (values) => {
-        const { nom, desc, categ, qte, pu, seuil } = values;
+        const { name, desc, categoryId, quantity, price, seuil } = values;
         console.log(values);
 
         try {
-            const response = await axiosInstance.post('http://localhost:8000/produits/',{
-                nom,
+            const response = await axiosInstance.post('http://localhost:5273/api/Products/', {
+                name,
                 desc,
-                categ,
-                qte,
-                pu,
+                categoryId: parseInt(categoryId, 10),
+                quantity,
+                price,
                 seuil
+
+
             });
 
             message.success("Produit ajouté avec succès !");
@@ -99,13 +103,13 @@ function AjouterProduit({ onProduitAdded }) {
     >
         <fieldset>
             <legend> <h5>Ajouter un produit</h5> </legend>
-            <Form.Item name='nom' label="Nom" rules={[{ required: true }]} >
+            <Form.Item name='name' label="Nom" rules={[{ required: true }]} >
                 <Input />
             </Form.Item>
             <Form.Item name='desc' label="Description" rules={[{ required: true }]} >
                 <Input />
             </Form.Item>
-            <Form.Item name='categ' label="Categorie" rules={[{ required: true }]}>
+            <Form.Item name='categoryId' label="Categorie" rules={[{ required: true }]}>
                 <Select>
                     {categories.map((categorie) => (
                         <Select.Option key={categorie.id} value={categorie.id} >{categorie.libelle}</Select.Option>
@@ -113,10 +117,10 @@ function AjouterProduit({ onProduitAdded }) {
 
                 </Select>
             </Form.Item>
-            <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
+            <Form.Item name='quantity' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
                 <InputNumber style={{ width: "100%" }} />
             </Form.Item>
-            <Form.Item name='pu' label="Prix unitaire" rules={[{ type: 'number', min: 0, required: true }]} >
+            <Form.Item name='price' label="Prix unitaire" rules={[{ type: 'number', min: 0, required: true }]} >
                 <InputNumber style={{ width: "100%" }} />
             </Form.Item>
             <Form.Item name='seuil' label="Seuil" rules={[{ type: 'number', min: 0, required: true }]} >
@@ -124,7 +128,7 @@ function AjouterProduit({ onProduitAdded }) {
             </Form.Item>
 
             <Form.Item label={null}>
-                <Button type="primary" htmlType="submit" >
+                <Button htmlType="submit" className='boutonAddProduit' >
                     Ajouter produit
                 </Button>
             </Form.Item>
@@ -147,18 +151,18 @@ export function Produits() {
     }, []);
     useEffect(() => {
         produits.forEach(p => {
-          if (p.qte <= p.seuil) {
-            message.warning(`Produit #${p.id} a atteint le seuil`);
-          }
+            if (p.qte <= p.seuil) {
+                message.warning(`Produit #${p.id} a atteint le seuil`);
+            }
         });
-      }, [produits]);
+    }, [produits]);
     const columns = [
         { header: 'ID', accessorKey: 'id' },
-        { header: 'Nom', accessorKey: 'nom' },
+        { header: 'Nom', accessorKey: 'name' },
         { header: 'Description', accessorKey: 'desc' },
-        { header: 'Categorie', accessorKey: 'categorie_nom' },
-        { header: 'Stock', accessorKey: 'qte' },
-        { header: 'Prix Unitaire', accessorKey: 'pu' },
+        { header: 'Categorie', accessorKey: 'categoryId' },
+        { header: 'Stock', accessorKey: 'quantity' },
+        { header: 'Prix Unitaire', accessorKey: 'price' },
         { header: 'Seuil', accessorKey: 'seuil' },
         {
             header: 'Actions',
@@ -238,19 +242,19 @@ export function Produits() {
     return (
 
         <>
-            <h2 >Produits</h2>
-           
-            <Input
-                placeholder="Rechercher..."
-                value={globalFilter || ''}
-                onChange={e => setGlobalFilter(e.target.value)}
-                style={{ marginBottom: '1rem', width: '300px' }}
-            />
-            <Row justify="space-between">
-                <Col span={14}>
-                    <table id="myTable" className="table  table-hover table-striped-columns  align-middle">
+            <div className="contentBody">
+                <div className="produits">
+                    <h2 >Produits</h2>
+
+                    <Input
+                        placeholder="Rechercher..."
+                        value={globalFilter || ''}
+                        onChange={e => setGlobalFilter(e.target.value)}
+                        style={{ marginBottom: '1rem', width: '300px' }}
+                    />
+                    <table id="myTable" className="table  table-hover">
                         <caption>Liste des Produits</caption>
-                        <thead className="table-dark">
+                        <thead className="table-ligth" style={{ color: "#bfb6ed" }}>
                             {table.getHeaderGroups().map(headerGroup => (
                                 <tr key={headerGroup.id}>
                                     {headerGroup.headers.map(header => (
@@ -290,12 +294,14 @@ export function Produits() {
                             Page {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
                         </span>
                     </div>
-                </Col>
-                <Col span={8} style={{ marginTop: '-60px' }}>
-                    <AjouterProduit onProduitAdded={(newProduit) => setProduits(prev => [...prev, newProduit])} />
 
-                </Col>
-            </Row>
+                </div>
+                <div className="addProduit">
+                    <AjouterProduit onProduitAdded={(newProduit) => setProduits(prev => [...prev, newProduit])} />
+                </div>
+            </div>
+
+
 
         </>
 
