@@ -112,7 +112,7 @@ export function Transactions() {
             <Row justify="space-between">
                 <Col span={24}>
                     <table id="myTable" className="table  table-hover table-striped-columns  align-middle">
-                        <thead className="table-dark">
+                        <thead className="table-light">
                             {table.getHeaderGroups().map(headerGroup => (
                                 <tr key={headerGroup.id}>
                                     {headerGroup.headers.map(header => (

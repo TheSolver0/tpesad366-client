@@ -165,14 +165,15 @@ export function Dashboard() {
 
     return (
         <ErrorBoundary>
-            <div className='dash'>
-                <h1>Dashboard</h1>
+
+ <div className="contentBody">
+        <div className="produits">
+                <h2>Dashboard</h2>
 
 
-                <Row justify="space-between">
-                    <Col span={12} >
+                
                         <table id="myTable" className="table  table-hover table-striped-columns  align-middle">
-                            <thead className="table-dark">
+                            <thead className="table-light">
                                 {table.getHeaderGroups().map(headerGroup => (
                                     <tr key={headerGroup.id}>
                                         {headerGroup.headers.map(header => (
@@ -212,28 +213,32 @@ export function Dashboard() {
                                 Page {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
                             </span>
                         </div>
-                    </Col>
-                    <Col span={10} style={{ background: '#001529', borderRadius: '10px' }}>
+                        </div>
+                   
+                <div className="addProduit" >
+                    {/* <Col span={10} style={{ background: '#f6f4ff', borderRadius: '10px', }}> */}
                         {data?.labels?.length && data?.datasets?.length ? (
                             <LineChart data={data} />
                         ) : (
                             <p>Chargement du graphique...</p>
                         )}
 
-                    </Col>
+                    {/* </Col> */}
 
-                </Row>
+                
 
-                <Row justify="center">
-                    <Col  style={{ background: '#001529', borderRadius: '0px', width: '100%' }}>
+                        </div>
+                        </div>
+                
+                <div className="addProduit" style={{width:'105%', marginTop: '20px', }}>
+                    {/* <Col  style={{ background: '#f6f4ff', borderRadius: '0px', width: '100%' }}> */}
                         <LineChart data={data2} />
-                    </Col>
+                    {/* </Col> */}
                    
 
-                </Row>
+                </div>
 
-            </div>
-
+      
         </ErrorBoundary>
 
     )

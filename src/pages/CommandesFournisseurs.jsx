@@ -12,7 +12,7 @@ import {
 
 } from '@ant-design/icons';
 import DataTable from 'datatables.net-dt';
-import { getCommandesFournisseur, getProduits, getFournisseurs } from "../services/api";
+import { getCommandesFournisseur, getProduits, getFournisseurs, API_URL } from "../services/api";
 
 import {
     useReactTable,
@@ -68,7 +68,7 @@ function AjouterCommande({ onCommandeAdded }) {
         console.log('produit', produits);
         try {
             if (fournisseur_produit.includes(produits)) {
-                const response = await axiosInstance.post('http://localhost:8000/commandesFournisseur/', {
+                const response = await axiosInstance.post(`${API_URL}commandesFournisseur/`, {
                     produits,
                     qte,
                     fournisseur,
@@ -119,7 +119,7 @@ function AjouterCommande({ onCommandeAdded }) {
             <Form.Item name='produits' label="Produit" rules={[{ required: true }]}>
                 <Select>
                     {produits.map((produit) => (
-                        <Select.Option key={produit.id} value={produit.id} >{produit.nom}</Select.Option>
+                        <Select.Option key={produit.id} value={produit.id} >{produit.name}</Select.Option>
                     ))}
 
                 </Select>
@@ -128,10 +128,10 @@ function AjouterCommande({ onCommandeAdded }) {
             <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 0, required: true }]}>
                 <InputNumber style={{ width: "100%" }} />
             </Form.Item>
-            <Form.Item name='fournisseur' label="User" rules={[{ required: true }]}>
+            <Form.Item name='fournisseur' label="Fournisseur" rules={[{ required: true }]}>
                 <Select onChange={handleFournisseurChange}>
                     {fournisseurs.map((fournisseur) => (
-                        <Select.Option key={fournisseur.id} value={fournisseur.id} >{fournisseur.nom}</Select.Option>
+                        <Select.Option key={fournisseur.id} value={fournisseur.id} >{fournisseur.name}</Select.Option>
 
                     ))}
 
@@ -343,18 +343,15 @@ export function CommandesFournisseurs() {
     return (
 
         <>
-            <Flex align="flex-end" justify="space-between" className='flexCardstat'>
+        <div className="contentBody">
+        <div className="produits">
                 <h2>Table de Commandes Aux fournisseurs</h2>
-                {/* <Button color='#1677ff' variant="solid" icon={<PlusSquareOutlined />} size={size}>
-                    Ajouter un produit
-                </Button> */}
-            </Flex>
+             
 
 
-            <Row justify="space-between">
-                <Col span={16}>
+            
                     <table id="myTable" className="table  table-hover table-striped-columns  align-middle">
-                        <thead className="table-dark">
+                        <thead className="table-light">
                             {table.getHeaderGroups().map(headerGroup => (
                                 <tr key={headerGroup.id}>
                                     {headerGroup.headers.map(header => (
@@ -394,12 +391,14 @@ export function CommandesFournisseurs() {
                             Page {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
                         </span>
                     </div>
-                </Col>
-                <Col span={6} style={{ marginTop: '-60px' }}>
+                    </div>
+                
+                <div className="addProduit">
                     <AjouterCommande onCommandeAdded={(newCommande) => setCommandes(prev => [...prev, newCommande])} />
 
-                </Col>
-            </Row>
+                </div>
+                </div>
+                
 
         </>
 

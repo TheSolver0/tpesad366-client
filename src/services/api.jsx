@@ -37,11 +37,11 @@ export const getMouvements = async () => {
   return response.data;
 };
 export const getCommandesClient = async () => {
-  const response = await axiosInstance.get(`${API_URL}commandesClient/`);
+  const response = await axiosInstance.get(`${API_URL}Orders/`);
   return response.data;
 };
 export const getCommandeClient = async (id) => {
-  const response = await axiosInstance.get(`${API_URL}commandesClient/${id}`);
+  const response = await axiosInstance.get(`${API_URL}Orders/${id}`);
   return response.data;
 };
 export const getCommandesFournisseur = async () => {

@@ -12,7 +12,7 @@ import {
 
 } from '@ant-design/icons';
 import DataTable from 'datatables.net-dt';
-import { getCommandesClient, getProduits, getClients } from "../services/api";
+import { getCommandesClient, getProduits, getClients, API_URL } from "../services/api";
 
 import {
     useReactTable,
@@ -62,18 +62,18 @@ function AjouterCommande({ onCommandeAdded }) {
     };
     const onFinish = async (values) => {
 
-        const { qte, produit, userC } = values;
-        const p = produits.find(p => p.id === produit)
-        const userF = null;
-        console.log(values);
-        let client = userC
-        console.log(p.seuil);
+        const { quantity, productId, customerId } = values;
+        // const p = produits.find(p => p.id === produit)
+        // const userF = null;
+        // console.log(values);
+        // let client = userC
+        // console.log(p.seuil);
         try {
-            if (qte <= p.qte - p.seuil) {
-                const response = await axiosInstance.post('http://localhost:8000/commandesClient/', {
-                    produits: produit,
-                    qte,
-                    client,
+            
+                const response = await axiosInstance.post(`${API_URL}Orders/`, {
+                    quantity, 
+                    productId,
+                    customerId,
 
                 });
 
@@ -85,20 +85,7 @@ function AjouterCommande({ onCommandeAdded }) {
 
                 console.log('Commande ajouté :', response.data);
             }
-            else {
-                const quantiteDisponible = Math.max(qte - p.seuil, 0);
-                if (quantiteDisponible === 0) {
-                    message.error("Produit en rupture de stock");
-
-                }
-                else {
-                    message.error("Il n'y a plus assez de ce produit en stock. Vous pouvez d'abord prendre  " + quantiteDisponible + " Et prendre le reste au rechargement de stock");
-
-                }
-
-            }
-
-        } catch (error) {
+        catch (error) {
             message.error("Erreur lors de l’ajout de la commande !");
             console.error('Erreur lors de l’ajout', error);
         }
@@ -118,22 +105,22 @@ function AjouterCommande({ onCommandeAdded }) {
     >
         <fieldset>
             <legend> <h5>Ajouter une Commande</h5> </legend>
-            <Form.Item name='produit' label="Produit" rules={[{ required: true }]}>
+            <Form.Item name='productId' label="Produit" rules={[{ required: true }]}>
                 <Select>
                     {produits.map((produit) => (
-                        <Select.Option key={produit.id} value={produit.id} >{produit.nom}</Select.Option>
+                        <Select.Option key={produit.id} value={produit.id} >{produit.name}</Select.Option>
                     ))}
 
                 </Select>
             </Form.Item>
 
-            <Form.Item name='qte' label="Quantité" rules={[{ type: 'number', min: 1, required: true }]}>
+            <Form.Item name='quantity' label="Quantité" rules={[{ type: 'number', min: 1, required: true }]}>
                 <InputNumber style={{ width: "100%" }} />
             </Form.Item>
-            <Form.Item name='userC' label="User" rules={[{ required: true }]}>
+            <Form.Item name='customerId' label="Client" rules={[{ required: true }]}>
                 <Select>
                     {clients.map((client) => (
-                        <Select.Option key={client.id} value={client.id} >{client.nom}</Select.Option>
+                        <Select.Option key={client.id} value={client.id} >{client.name}</Select.Option>
                     ))}
 
                 </Select>
@@ -184,22 +171,22 @@ export function CommandesClients() {
 
     const columns = [
         { header: 'ID', accessorKey: 'id' },
-        { header: 'Produit', accessorKey: 'produit_nom' },
-        { header: 'Quantité', accessorKey: 'qte' },
-        { header: 'Commandeur', accessorKey: 'client_nom' },
-        { header: 'Prix Unitaire(XAF)', accessorKey: 'produit_pu' },
-        { header: 'Montant(XAF)', accessorKey: 'montant' },
+        { header: 'Produit', accessorKey: 'product.name' },
+        { header: 'Quantité', accessorKey: 'quantity' },
+        { header: 'Commandeur', accessorKey: 'customer.name' },
+        { header: 'Prix Unitaire(XAF)', accessorKey: 'product.price' },
+        { header: 'Montant(XAF)', accessorKey: 'amount' },
         {
             header: 'Statut',
             id: 'statut',
             cell: ({ row }) => (<span className="badge " style={{
-                fontSize: '12px',
-                background: (row.original.statut === 'EN_ATTENTE') ? 'orange' :
-                    (row.original.statut === 'PREPAREE') ? 'blue' :
-                        (row.original.statut === 'EXPEDIEE') ? '#06d6a0' :
-                            (row.original.statut === 'LIVREE') ? '#007f5f' :
-                                (row.original.statut === 'ANNULEE') ? 'red' : ''
-            }} >{row.original.statut}</span>)
+                fontSize: '10px',
+                background: (row.original.status === 'EN_ATTENTE') ? 'orange' :
+                    (row.original.status === 'PREPAREE') ? 'blue' :
+                        (row.original.status === 'EXPEDIEE') ? '#06d6a0' :
+                            (row.original.status === 'LIVREE') ? '#007f5f' :
+                                (row.original.status === 'ANNULEE') ? 'red' : ''
+            }} >{row.original.status}</span>)
         },
         {
             header: 'Actions',
@@ -212,11 +199,11 @@ export function CommandesClients() {
                         onConfirm={() => handleDelete(row.original.id)}
                         icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
                     >
-                        <Button danger><MinusSquareFilled /></Button>
+                        <MinusSquareFilled style={{color: 'red'}} />
                     </Popconfirm>
 
                     <NavLink to={`/commandeclients/${row.original.id}`}>
-                        <Button><EditFilled /></Button>
+                        <EditFilled />
                     </NavLink>
                 </Flex>
             ),
@@ -259,18 +246,16 @@ export function CommandesClients() {
     return (
 
         <>
-            <Flex align="flex-end" justify="space-between" className='flexCardstat'>
-                <h2>Table de Commandes des Clients</h2>
-                {/* <Button color='#1677ff' variant="solid" icon={<PlusSquareOutlined />} size={size}>
-                    Ajouter un produit
-                </Button> */}
-            </Flex>
+           <div className="contentBody">
+        <div className="produits">
+                <h2>Table de Commandes Des Clients</h2>
+             
 
 
-            <Row justify="space-between">
-                <Col span={14}>
+
+           
                     <table id="myTable" className="table  table-hover table-striped-columns  align-middle">
-                        <thead className="table-dark">
+                        <thead className="table-light">
                             {table.getHeaderGroups().map(headerGroup => (
                                 <tr key={headerGroup.id}>
                                     {headerGroup.headers.map(header => (
@@ -310,12 +295,12 @@ export function CommandesClients() {
                             Page {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
                         </span>
                     </div>
-                </Col>
-                <Col span={8} style={{ marginTop: '-60px' }}>
+                </div>
+                <div className="addProduit">
                     <AjouterCommande onCommandeAdded={(newCommande) => setCommandes(prev => [...prev, newCommande])} />
-
-                </Col>
-            </Row>
+</div>
+                </div>
+                
 
         </>
 

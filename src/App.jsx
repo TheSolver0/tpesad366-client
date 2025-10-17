@@ -313,7 +313,7 @@ function Root() {
            <div className="demo-logo-vertical" >
             <Space direction="horizontal" size={5} style={{margin:10}}>
               
-                <Avatar size={40} icon={<UserOutlined />} /> <h4>{user.nom ?? 'Admin'} 
+                <Avatar size={40} icon={<UserOutlined />} /> <h4>{'Admin'} 
                 </h4>
               
             </Space>

@@ -72,7 +72,7 @@ function AjouterFournisseur({ onFournisseurAdded }) {
         telephone,
         // role,
         products,
-        delay
+        delay: parseInt(delay)
       });
 
       message.success("Fournisseur Enregistré avec succès !");
@@ -111,7 +111,7 @@ function AjouterFournisseur({ onFournisseurAdded }) {
       <Form.Item name='products' label="Produits" rules={[{ required: true }]}>
         <Select mode="multiple" placeholder="Sélectionnez des produits">
           {produits.map((produit) => (
-            <Select.Option key={produit.id} value={produit.id} >{produit.nom}</Select.Option>
+            <Select.Option key={produit.id} value={produit.id} >{produit.name}</Select.Option>
           ))}
 
         </Select>
@@ -169,7 +169,7 @@ export function Fournisseurs() {
               renderItem={(item) => (
                 <List.Item key={item.id} style={{ padding: '4px 0' }}>
                   <List.Item.Meta
-                    title={<span>{item.nom}</span>}
+                    title={<span>{item.name}</span>}
                   />
                 </List.Item>
               )}
@@ -195,11 +195,11 @@ export function Fournisseurs() {
             onConfirm={() => handleDelete(row.original.id)}
             icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
           >
-            <Button danger><MinusSquareFilled /></Button>
+            <MinusSquareFilled style={{color: 'red'}} />
           </Popconfirm>
 
           <NavLink to={`/fournisseur/${row.original.id}`}>
-            <Button><EditFilled /></Button>
+            <EditFilled />
           </NavLink>
         </Flex>
       ),

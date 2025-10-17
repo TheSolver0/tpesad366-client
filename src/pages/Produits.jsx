@@ -13,7 +13,7 @@ import {
 
 } from '@ant-design/icons';
 import DataTable from 'datatables.net-dt';
-import { getProduits } from "../services/api";
+import { getProduits, API_URL } from "../services/api";
 import { getCategories } from "../services/api";
 
 import {
@@ -67,7 +67,7 @@ function AjouterProduit({ onProduitAdded }) {
         console.log(values);
 
         try {
-            const response = await axiosInstance.post('http://localhost:5273/api/Products/', {
+            const response = await axiosInstance.post(`${API_URL}Products/`, {
                 name,
                 desc,
                 categoryId: parseInt(categoryId, 10),
@@ -112,7 +112,7 @@ function AjouterProduit({ onProduitAdded }) {
             <Form.Item name='categoryId' label="Categorie" rules={[{ required: true }]}>
                 <Select>
                     {categories.map((categorie) => (
-                        <Select.Option key={categorie.id} value={categorie.id} >{categorie.libelle}</Select.Option>
+                        <Select.Option key={categorie.id} value={categorie.id} >{categorie.title}</Select.Option>
                     ))}
 
                 </Select>
@@ -175,11 +175,11 @@ export function Produits() {
                         onConfirm={() => handleDelete(row.original.id)}
                         icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
                     >
-                        <Button danger><MinusSquareFilled /></Button>
+                        <MinusSquareFilled style={{color:'red'}}/>
                     </Popconfirm>
 
                     <NavLink to={`/produit/${row.original.id}`}>
-                        <Button><EditFilled /></Button>
+                        <EditFilled />
                     </NavLink>
                 </Flex>
             ),
